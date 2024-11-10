@@ -1,0 +1,37 @@
+modules:
+  confluence:globalPage:
+    - key: confluence-custom-ui-hello-world
+      resource: main
+      resolver:
+        function: resolver
+      title: confluence-custom-ui
+      route: hello-world
+  function:
+    - key: resolver
+      handler: index.handler
+    - key: my-scheduled-function
+      handler: index.trigger
+  scheduledTrigger:
+    - key: example-scheduled-trigger
+      function: my-scheduled-function
+      interval: hour # Runs hourly
+
+resources:
+  - key: main
+    path: static/hello-world/build
+
+app:
+  runtime:
+    name: nodejs20.x
+  id: ari:cloud:ecosystem::app/4b9676c8-ccca-4066-9faa-8192bbf3f900
+
+permissions:
+  scopes:
+    - write:confluence-content
+    - read:confluence-content.all
+    - search:confluence
+    - read:page:confluence
+    - storage:app
+  content:
+    styles:
+      - 'unsafe-inline'
