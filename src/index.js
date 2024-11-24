@@ -1,10 +1,6 @@
 import Resolver from '@forge/resolver';
 import api, { route, storage } from "@forge/api";
 import { convert } from "adf-to-md";
-import {toString} from 'nlcst-to-string'
-import {retext} from 'retext'
-import retextKeywords from 'retext-keywords'
-import retextPos from 'retext-pos'
 
 const resolver = new Resolver();
 
@@ -64,36 +60,26 @@ async function getGraphs() {
       const doc = convert(JSON.parse(d.body.atlas_doc_format.value))
       const body = doc.result.replace(/(\r\n|\n|\r)/gm, "")
 
-      const file = await retext()
-          .use(retextPos) // Make sure to use `retext-pos` before `retext-keywords`.
-          .use(retextKeywords)
-          .process(body)
+      const keywords = await extractKeywordsUsingRovo(body)
 
-      const keywords = []
-      if (file.data.keywords) {
-        for (const keyword of file.data.keywords) {
-          const word = toString(keyword.matches[0].node)
-          const docIds = keywordMap.get(word)
-          if(docIds) {
-            keywordMap.set(word, [...docIds, d.id])
-            docIds.forEach(id => {
-              links.push({
-                source: id,
-                target: d.id,
-              })
+      for (const word of keywords) {
+        const docIds = keywordMap.get(word)
+        if(docIds) {
+          keywordMap.set(word, [...docIds, d.id])
+          docIds.forEach(id => {
+            links.push({
+              source: id,
+              target: d.id,
             })
-          } else {
-            keywordMap.set(word, [d.id])
-          }
-
-          keywords.push(word)
+          })
+        } else {
+          keywordMap.set(word, [d.id])
         }
       }
 
       docs.push({
         id: d.id,
         title: d.title,
-        // body: body,
         keywords: keywords,
       })
     } catch (e) {
@@ -101,9 +87,30 @@ async function getGraphs() {
     }
   }
 
-
   return {
     nodes: docs,
     links: links,
+  }
+}
+
+async function extractKeywordsUsingRovo(text) {
+  try {
+    const response = await api.asApp().requestConfluence(route`/rovo-agent/extract-keywords`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ text })
+    });
+
+    if (!response.ok) {
+      throw new Error('Rovo Agent keyword extraction failed.');
+    }
+
+    const data = await response.json();
+    return data.keywords; 
+  } catch (error) {
+    console.error(error);
+    return [];
   }
 }

@@ -11,11 +11,33 @@ modules:
       handler: index.handler
     - key: my-scheduled-function
       handler: index.trigger
+    - key: extractKeywordsFunction
+      handler: extractKeywords.handler
   scheduledTrigger:
     - key: example-scheduled-trigger
       function: my-scheduled-function
       interval: hour # Runs hourly
-
+  rovo:agent:  
+    - key: keyword-extractor-agent
+      name: "Keyword Extractor Agent"
+      description: "Extracts keywords from text using Rovo Agent"
+      prompt: |
+        You are an assistant that extracts keywords from a given text.
+      actions:
+        - extract-keywords
+  action: 
+    - key: extract-keywords
+      name: "Extract Keywords"
+      function: resolver
+      actionVerb: TRIGGER
+      description: |
+        Extract keywords from the provided text.
+      inputs:
+        text:
+          title: Text to Extract Keywords From
+          type: string
+          required: true
+          description: "The text from which to extract keywords."
 resources:
   - key: main
     path: static/hello-world/build
