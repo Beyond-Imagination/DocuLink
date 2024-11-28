@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-
+import './App.css';
 import { invoke } from '@forge/bridge';
 import ForceGraph3D from 'react-force-graph-3d';
 import SpriteText from 'three-spritetext';
