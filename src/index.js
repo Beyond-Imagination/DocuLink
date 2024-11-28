@@ -20,6 +20,12 @@ resolver.define('getGraphs', async (req) => {
 });
 
 
+resolver.define('searchByAPI', async (req) => {
+  const { searchWord } = req.payload;
+  const result = await searchByAPI(searchWord);
+  return result;
+});
+
 resolver.define('getPage', async (req) => {
   const id = 98413
   const response = await api.asApp().requestConfluence(route`/wiki/api/v2/pages/${id}?body-format=atlas_doc_format`, {
@@ -95,6 +101,7 @@ async function getGraphs() {
         title: d.title,
         // body: body,
         keywords: keywords,
+        searched: false,
       })
     } catch (e) {
       console.log(e)
@@ -106,4 +113,28 @@ async function getGraphs() {
     nodes: docs,
     links: links,
   }
+}
+
+async function searchByAPI(searchWord) {
+  const cql = `type = page and text ~ "${searchWord}"`;
+
+  const response = await api.asApp().requestConfluence(route`/wiki/rest/api/search?cql=${cql}`, {
+    headers: {
+      'Accept': 'application/json'
+    }
+  });
+
+  const result = await response.json()
+  // console.log(result, 'result searchByAPI');
+
+  let pages = []
+
+  for(const page of result.results) {
+    pages.push(
+      page.content.id
+    )
+  }
+
+  return pages;
+ 
 }
