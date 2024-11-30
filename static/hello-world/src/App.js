@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import './App.css';
-import { invoke } from '@forge/bridge';
+import { invoke, router } from '@forge/bridge';
 import ForceGraph3D from 'react-force-graph-3d';
 import SpriteText from 'three-spritetext';
 import randomColor from 'randomcolor';
@@ -20,18 +20,17 @@ function App() {
   const [searchWord, setSearchWord] = useState('');
 
   const handleSearch = async () => {
-    const searchedPageIdList = await invoke('searchByAPI', { searchWord });
-    // console.log(searchedPageIdList, 'searchedPageIdList');
-    let oldNodes = graphData.nodes;
-    for(const node of oldNodes) {
-      if(searchedPageIdList.includes(node.id)) {
+    let nodes = graphData.nodes;
+
+    for(const node of nodes) {
+      if(node.keywords.includes(searchWord)) {
         node.searched = true;
       } else {
         node.searched = false;
       }
     }
     setGraphData({
-      nodes: oldNodes,
+      nodes: nodes,
       links: graphData.links,
     })
   };
@@ -50,10 +49,15 @@ function App() {
           linkOpacity={0.8}
           controlType={'orbit'}
           nodeThreeObject={node => {
-            const sprite = new SpriteText(node.title);
-            sprite.color = randomColor()
-            node.searched ? sprite.textHeight = 30 : sprite.textHeight = 8;
+            const sprite = new SpriteText(node.title); 
+            node.searched ? sprite.textHeight = 30 : sprite.textHeight = 10;
+            node.searched ? sprite.color = '#ffde21' : sprite.color = '#ffffff';
             return sprite;
+          }}
+          onNodeClick={(node) => {
+            if (node.url) {
+              router.open(node.url);
+            }
           }}
       />
     </div>
