@@ -20,12 +20,6 @@ resolver.define('getGraphs', async (req) => {
 });
 
 
-resolver.define('searchByAPI', async (req) => {
-  const { searchWord } = req.payload;
-  const result = await searchByAPI(searchWord);
-  return result;
-});
-
 resolver.define('getPage', async (req) => {
   const id = 98413
   const response = await api.asApp().requestConfluence(route`/wiki/api/v2/pages/${id}?body-format=atlas_doc_format`, {
@@ -55,6 +49,16 @@ export const trigger = async ({ context }) => {
 };
 
 async function getGraphs() {
+
+  // This is used to get the base URL of the Confluence instance
+  const systemInfo = await api.asUser().requestConfluence(route`/wiki/rest/api/settings/systemInfo`, {
+    headers: {
+      'Accept': 'application/json'
+    }
+  });
+  const systemInfoResponse = await systemInfo.json()
+  const baseUrl = systemInfoResponse.baseUrl
+
   const response = await api.asApp().requestConfluence(route`/wiki/api/v2/pages?body-format=atlas_doc_format&limit=100`, {
     headers: {
       'Accept': 'application/json'
@@ -95,6 +99,7 @@ async function getGraphs() {
           keywords.push(word)
         }
       }
+      const docUrl = baseUrl + d._links.webui
 
       docs.push({
         id: d.id,
@@ -102,6 +107,7 @@ async function getGraphs() {
         // body: body,
         keywords: keywords,
         searched: false,
+        url: docUrl
       })
     } catch (e) {
       console.log(e)
@@ -113,28 +119,4 @@ async function getGraphs() {
     nodes: docs,
     links: links,
   }
-}
-
-async function searchByAPI(searchWord) {
-  const cql = `type = page and text ~ "${searchWord}"`;
-
-  const response = await api.asApp().requestConfluence(route`/wiki/rest/api/search?cql=${cql}`, {
-    headers: {
-      'Accept': 'application/json'
-    }
-  });
-
-  const result = await response.json()
-  // console.log(result, 'result searchByAPI');
-
-  let pages = []
-
-  for(const page of result.results) {
-    pages.push(
-      page.content.id
-    )
-  }
-
-  return pages;
- 
 }
