@@ -34,32 +34,46 @@ function App() {
       links: graphData.links,
     })
   };
+
+  const handleSearchReset = async () => {
+    let nodes = graphData.nodes;
+    for(const node of nodes) {
+      node.searched = false;
+    }
+    setGraphData({
+      nodes: nodes,
+      links: graphData.links,
+    })
+  };
   
   return (
     <div>
-      <Search
-        searchWord={searchWord}
-        setSearchWord={setSearchWord}
-        handleSearch={handleSearch}
-      />
-      <ForceGraph3D
-          graphData={graphData}
-          width={1500}
-          height={800}
-          linkOpacity={0.8}
-          controlType={'orbit'}
-          nodeThreeObject={node => {
-            const sprite = new SpriteText(node.title); 
-            node.searched ? sprite.textHeight = 30 : sprite.textHeight = 10;
-            node.searched ? sprite.color = '#ffde21' : sprite.color = '#ffffff';
-            return sprite;
-          }}
-          onNodeClick={(node) => {
-            if (node.url) {
-              router.open(node.url);
-            }
-          }}
-      />
+      <div className='relative'>
+        <Search
+          searchWord={searchWord}
+          setSearchWord={setSearchWord}
+          handleSearch={handleSearch}
+          handleSearchReset={handleSearchReset}
+        />
+        <ForceGraph3D
+            graphData={graphData}
+            width={1500}
+            height={800}
+            linkOpacity={0.8}
+            controlType={'orbit'}
+            nodeThreeObject={node => {
+              const sprite = new SpriteText(node.title); 
+              node.searched ? sprite.textHeight = 30 : sprite.textHeight = 10;
+              node.searched ? sprite.color = '#ffde21' : sprite.color = '#ffffff';
+              return sprite;
+            }}
+            onNodeClick={(node) => {
+              if (node.url) {
+                router.open(node.url);
+              }
+            }}
+        />
+      </div>
     </div>
   );
 }
