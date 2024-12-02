@@ -13,7 +13,7 @@ const SwitchButton = ({is3D, setIs3D}) => {
                 onChange={handleCheckboxChange}
                 className='sr-only'
             />
-            <span className='label flex items-center text-sm font-medium text-black'>
+            <span className={`label flex items-center text-sm font-medium ${is3D ? 'text-white' : 'text-yellow-300'}`}>
               2D
             </span>
             <span
@@ -23,7 +23,7 @@ const SwitchButton = ({is3D, setIs3D}) => {
                     className={`dot h-6 w-6 rounded-full bg-white duration-200 ${is3D ? 'translate-x-[28px]' : ''}`}
                 ></span>
             </span>
-            <span className='label flex items-center text-sm font-medium text-black'>
+            <span className={`label flex items-center text-sm font-medium ${is3D ? 'text-yellow-300' : 'text-white'}`}>
               3D
             </span>
         </label>
