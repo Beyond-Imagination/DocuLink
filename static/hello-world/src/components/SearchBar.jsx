@@ -2,7 +2,7 @@ import React from 'react';
 
 function Search({ searchWord, setSearchWord, handleSearch, handleSearchReset }) {
   return (
-    <div className='absolute z-10 right-[1rem] top-[1rem] w-[20rem]'>
+    <div className='w-[20rem]'>
       <form class="max-w-md mx-auto"
         onSubmit={(e) => e.preventDefault()}
       >   

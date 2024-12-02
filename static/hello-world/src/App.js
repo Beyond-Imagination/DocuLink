@@ -4,8 +4,7 @@ import { invoke, router } from '@forge/bridge';
 import ForceGraph3D from 'react-force-graph-3d';
 import ForceGraph2D from 'react-force-graph-2d';
 import SpriteText from 'three-spritetext';
-import randomColor from 'randomcolor';
-import Search from './components/search';
+import SearchBar from './components/SearchBar';
 import SwitchButton from "./components/SwitchButton";
 
 function App() {
@@ -48,24 +47,38 @@ function App() {
       links: graphData.links,
     })
   };
+  const [appWidth, setAppWidth] = useState(window.innerWidth);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setAppWidth(window.innerWidth);
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
   
   return (
     <div>
-      <div className='relative'>
-        <Search
-          searchWord={searchWord}
-          setSearchWord={setSearchWord}
-          handleSearch={handleSearch}
-          handleSearchReset={handleSearchReset}
-        />
-        <SwitchButton
-            is3D={is3D}
-            setIs3D={setIs3D}
-        />
+      <div className={`relative`}>
+        <div className='absolute z-10 right-[1rem] top-[1rem]'>
+          <SearchBar
+            searchWord={searchWord}
+            setSearchWord={setSearchWord}
+            handleSearch={handleSearch}
+            handleSearchReset={handleSearchReset}
+          />
+          <div className='flex justify-end p-[1rem]'>
+            <SwitchButton
+              is3D={is3D}
+              setIs3D={setIs3D}
+            />
+          </div>
+        </div>
           { is3D ?
               <ForceGraph3D
                   graphData={graphData}
-                  width={1500}
+                  width={appWidth}
                   height={800}
                   linkOpacity={0.8}
                   // backgroundColor={'black'}
@@ -84,18 +97,18 @@ function App() {
               /> :
               <ForceGraph2D
                   graphData={graphData}
-                  width={1500}
+                  width={appWidth}
                   height={800}
                   linkColor={() => 'rgba(255,255,255,0.8)'}
                   backgroundColor={'rgba(0,0,16,255)'}
                   nodeCanvasObject={(node, ctx, globalScale) => {
                     const label = node.title;
-                    const fontSize = 12/globalScale;
+                    const fontSize = node.searched ? 24/globalScale : 12/globalScale;
                     ctx.font = `${fontSize}px Sans-Serif`;
                     const textWidth = ctx.measureText(label).width;
                     const bckgDimensions = [textWidth, fontSize].map(n => 2*n); // some padding
 
-                    ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+                    node.searched ? ctx.fillStyle = 'rgba(255, 222, 33, 0.8)' : ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
 
                     ctx.textAlign = 'center';
                     ctx.textBaseline = 'middle';
