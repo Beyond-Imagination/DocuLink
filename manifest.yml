@@ -120,7 +120,7 @@ permissions:
     - search:confluence
     - read:page:confluence
     - storage:app
-    
+    - manage:confluence-configuration
   content:
     styles:
       - 'unsafe-inline'

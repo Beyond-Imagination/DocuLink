@@ -5,12 +5,10 @@ import {toString} from 'nlcst-to-string'
 import {retext} from 'retext'
 import retextKeywords from 'retext-keywords'
 import retextPos from 'retext-pos'
-import { retrieveKeyword } from './keywordUtil';
 
 const resolver = new Resolver();
 
 resolver.define('getGraphs', async (req) => {
-
   let graphs = await storage.get('graphs');
 
   if (!graphs) {
@@ -51,6 +49,16 @@ export const trigger = async ({ context }) => {
 };
 
 async function getGraphs() {
+
+  // This is used to get the base URL of the Confluence instance
+  const systemInfo = await api.asUser().requestConfluence(route`/wiki/rest/api/settings/systemInfo`, {
+    headers: {
+      'Accept': 'application/json'
+    }
+  });
+  const systemInfoResponse = await systemInfo.json()
+  const baseUrl = systemInfoResponse.baseUrl
+
   const response = await api.asApp().requestConfluence(route`/wiki/api/v2/pages?body-format=atlas_doc_format&limit=100`, {
     headers: {
       'Accept': 'application/json'
@@ -59,9 +67,7 @@ async function getGraphs() {
 
   const result = await response.json()
   const docs = []
-
   let keywordMap = new Map()
-
   const links = []
   for (const d of result.results) {
     try {
@@ -74,7 +80,6 @@ async function getGraphs() {
           .process(body)
 
       const keywords = []
-
       if (file.data.keywords) {
         for (const keyword of file.data.keywords) {
           const word = toString(keyword.matches[0].node)
@@ -94,18 +99,21 @@ async function getGraphs() {
           keywords.push(word)
         }
       }
-
+      const docUrl = baseUrl + d._links.webui
 
       docs.push({
         id: d.id,
         title: d.title,
         // body: body,
         keywords: keywords,
+        searched: false,
+        url: docUrl
       })
     } catch (e) {
       console.log(e)
     }
   }
+
 
   return {
     nodes: docs,
@@ -113,48 +121,27 @@ async function getGraphs() {
   }
 }
 
-resolver.define('retrieveKeywords', async (req) => {
-  const response = await api.asApp().requestConfluence(route`/wiki/api/v2/pages?body-format=atlas_doc_format&limit=100`, {
+resolver.define('searchByAPI', async (req) => {
+  const { searchWord } = req.payload;
+  const result = await searchByAPI(searchWord);
+  return result;
+});
+
+async function searchByAPI(searchWord) {
+  const cql = `type = page and text ~ "${searchWord}"`;
+  const response = await api.asApp().requestConfluence(route`/wiki/rest/api/search?cql=${cql}`, {
     headers: {
       'Accept': 'application/json'
     }
   });
-
   const result = await response.json()
-  const docs = []
 
-  let keywordMap = new Map()
-
-  const links = []
-  for (const d of result.results) {
-    try {
-      const doc = convert(JSON.parse(d.body.atlas_doc_format.value))
-
-      const rovo_keyword = await retrieveKeyword(d.id);
-      
-      if (rovo_keyword && Array.isArray(rovo_keyword)) {
-        for (const word of rovo_keyword) {
-          const docIds = keywordMap.get(word)
-          if(docIds) {
-            keywordMap.set(word, [...docIds, d.id])
-            docIds.forEach(id => {
-              links.push({
-                source: id,
-                target: d.id,
-              })
-            })
-          } else {
-            keywordMap.set(word, [d.id])
-          }
-          keywords.push(word)
-        }
-      }
-    } catch (e) {
-      console.log(e)
-    }
+  let pages = []
+  for(const page of result.results) {
+    pages.push(
+      page.content.id
+    )
   }
 
-  return keywords
-});
-
-export const macroHandler = resolver.getDefinitions();
+  return pages;
+}
