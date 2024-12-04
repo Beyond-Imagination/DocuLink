@@ -8,33 +8,45 @@ import SearchBar from './components/SearchBar';
 import SwitchButton from "./components/SwitchButton";
 
 function App() {
+  const [appWidth, setAppWidth] = useState(window.innerWidth);
   const [graphData, setGraphData] = useState({ nodes: [], links: [] });
   const [is3D, setIs3D] = useState(false)
+  const [isSearching, setIsSearching] = useState(false);
 
   useEffect(async () => {
-    const result = await invoke('getGraphs');
+    setIsSearching(true);
+    try{
+      const result = await invoke('getGraphs');
 
-    console.log(result)
+      console.log(result)
 
-    setGraphData(result)
+      setGraphData(result)
+    } finally {
+      setIsSearching(false);
+    }
   }, []);
 
   const [searchWord, setSearchWord] = useState('');
 
   const handleSearch = async () => {
-    let nodes = graphData.nodes;
-
-    for(const node of nodes) {
-      if(node.keywords.includes(searchWord)) {
-        node.searched = true;
-      } else {
-        node.searched = false;
+    setIsSearching(true);
+    try {
+      const searchedPageIdList = await invoke('searchByAPI', { searchWord });
+      let nodes = graphData.nodes;
+      for(const node of nodes) {
+        if(searchedPageIdList.includes(node.id)) {
+          node.searched = true;
+        } else {
+          node.searched = false;
+        }
       }
+      setGraphData({
+        nodes: nodes,
+        links: graphData.links,
+      });
+    } finally {
+      setIsSearching(false);
     }
-    setGraphData({
-      nodes: nodes,
-      links: graphData.links,
-    })
   };
 
   const handleSearchReset = async () => {
@@ -47,7 +59,7 @@ function App() {
       links: graphData.links,
     })
   };
-  const [appWidth, setAppWidth] = useState(window.innerWidth);
+  
 
   useEffect(() => {
     const handleResize = () => {
@@ -75,6 +87,11 @@ function App() {
             />
           </div>
         </div>
+          {isSearching && (
+            <div className="absolute inset-0 z-20 flex items-center justify-center bg-black bg-opacity-50">
+              <div className="text-white text-xl">Searching...</div>
+            </div>
+          )}
           { is3D ?
               <ForceGraph3D
                   graphData={graphData}
