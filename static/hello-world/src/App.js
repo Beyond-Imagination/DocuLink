@@ -6,6 +6,7 @@ import ForceGraph2D from 'react-force-graph-2d';
 import SpriteText from 'three-spritetext';
 import SearchBar from './components/SearchBar';
 import SwitchButton from "./components/SwitchButton";
+import CheckBox from "./components/Checkbox";
 
 function App() {
   const [appWidth, setAppWidth] = useState(window.innerWidth);
@@ -59,7 +60,13 @@ function App() {
       links: graphData.links,
     })
   };
-  
+
+  // checkbox example event
+  const handleSayHello = (checked) => {
+    if (checked) {
+      console.log('Hello, world!');
+    }
+  };
 
   useEffect(() => {
     const handleResize = () => {
@@ -84,6 +91,12 @@ function App() {
             <SwitchButton
               is3D={is3D}
               setIs3D={setIs3D}
+            />
+          </div>
+          <div className='flex justify-end px-[1rem] space-y-2'>
+            <CheckBox
+              title='Say hello'
+              onChecked={handleSayHello}
             />
           </div>
         </div>
