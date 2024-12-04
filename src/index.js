@@ -120,3 +120,28 @@ async function getGraphs() {
     links: links,
   }
 }
+
+resolver.define('searchByAPI', async (req) => {
+  const { searchWord } = req.payload;
+  const result = await searchByAPI(searchWord);
+  return result;
+});
+
+async function searchByAPI(searchWord) {
+  const cql = `type = page and text ~ "${searchWord}"`;
+  const response = await api.asApp().requestConfluence(route`/wiki/rest/api/search?cql=${cql}`, {
+    headers: {
+      'Accept': 'application/json'
+    }
+  });
+  const result = await response.json()
+
+  let pages = []
+  for(const page of result.results) {
+    pages.push(
+      page.content.id
+    )
+  }
+
+  return pages;
+}
