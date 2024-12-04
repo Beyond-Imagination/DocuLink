@@ -7,10 +7,14 @@ import randomColor from 'randomcolor';
 
 function App() {
   const [graphData, setGraphData] = useState({ nodes: [], links: [] });
-
+  const [keywords, setKeywords] = useState(undefined);
+  
   useEffect(async () => {
-    const result = await invoke('getGraphs');
+    
+    invoke('retrieveKeywords').then(setKeywords);
+    console.log(keywords)
 
+    const result = await invoke('getGraphs');
     console.log(result)
 
     setGraphData(result)

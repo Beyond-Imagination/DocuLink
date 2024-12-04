@@ -1,10 +1,16 @@
 import Resolver from '@forge/resolver';
 import api, { route, storage } from "@forge/api";
 import { convert } from "adf-to-md";
+import {toString} from 'nlcst-to-string'
+import {retext} from 'retext'
+import retextKeywords from 'retext-keywords'
+import retextPos from 'retext-pos'
+import { retrieveKeyword } from './keywordUtil';
 
 const resolver = new Resolver();
 
 resolver.define('getGraphs', async (req) => {
+
   let graphs = await storage.get('graphs');
 
   if (!graphs) {
@@ -53,33 +59,47 @@ async function getGraphs() {
 
   const result = await response.json()
   const docs = []
+
   let keywordMap = new Map()
+
   const links = []
   for (const d of result.results) {
     try {
       const doc = convert(JSON.parse(d.body.atlas_doc_format.value))
       const body = doc.result.replace(/(\r\n|\n|\r)/gm, "")
 
-      const keywords = await extractKeywordsUsingRovo(body)
+      const file = await retext()
+          .use(retextPos) // Make sure to use `retext-pos` before `retext-keywords`.
+          .use(retextKeywords)
+          .process(body)
 
-      for (const word of keywords) {
-        const docIds = keywordMap.get(word)
-        if(docIds) {
-          keywordMap.set(word, [...docIds, d.id])
-          docIds.forEach(id => {
-            links.push({
-              source: id,
-              target: d.id,
+      const keywords = []
+
+      if (file.data.keywords) {
+        for (const keyword of file.data.keywords) {
+          const word = toString(keyword.matches[0].node)
+          const docIds = keywordMap.get(word)
+          if(docIds) {
+            keywordMap.set(word, [...docIds, d.id])
+            docIds.forEach(id => {
+              links.push({
+                source: id,
+                target: d.id,
+              })
             })
-          })
-        } else {
-          keywordMap.set(word, [d.id])
+          } else {
+            keywordMap.set(word, [d.id])
+          }
+
+          keywords.push(word)
         }
       }
+
 
       docs.push({
         id: d.id,
         title: d.title,
+        // body: body,
         keywords: keywords,
       })
     } catch (e) {
@@ -93,24 +113,48 @@ async function getGraphs() {
   }
 }
 
-async function extractKeywordsUsingRovo(text) {
-  try {
-    const response = await api.asApp().requestConfluence(route`/rovo-agent/extract-keywords`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ text })
-    });
-
-    if (!response.ok) {
-      throw new Error('Rovo Agent keyword extraction failed.');
+resolver.define('retrieveKeywords', async (req) => {
+  const response = await api.asApp().requestConfluence(route`/wiki/api/v2/pages?body-format=atlas_doc_format&limit=100`, {
+    headers: {
+      'Accept': 'application/json'
     }
+  });
 
-    const data = await response.json();
-    return data.keywords; 
-  } catch (error) {
-    console.error(error);
-    return [];
+  const result = await response.json()
+  const docs = []
+
+  let keywordMap = new Map()
+
+  const links = []
+  for (const d of result.results) {
+    try {
+      const doc = convert(JSON.parse(d.body.atlas_doc_format.value))
+
+      const rovo_keyword = await retrieveKeyword(d.id);
+      
+      if (rovo_keyword && Array.isArray(rovo_keyword)) {
+        for (const word of rovo_keyword) {
+          const docIds = keywordMap.get(word)
+          if(docIds) {
+            keywordMap.set(word, [...docIds, d.id])
+            docIds.forEach(id => {
+              links.push({
+                source: id,
+                target: d.id,
+              })
+            })
+          } else {
+            keywordMap.set(word, [d.id])
+          }
+          keywords.push(word)
+        }
+      }
+    } catch (e) {
+      console.log(e)
+    }
   }
-}
+
+  return keywords
+});
+
+export const macroHandler = resolver.getDefinitions();

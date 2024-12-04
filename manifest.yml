@@ -1,4 +1,4 @@
-modules:
+modules: 
   confluence:globalPage:
     - key: confluence-custom-ui-hello-world
       resource: main
@@ -6,38 +6,103 @@ modules:
         function: resolver
       title: confluence-custom-ui
       route: hello-world
+  scheduledTrigger:
+    - key: example-scheduled-trigger
+      function: my-scheduled-function
+      interval: hour # Runs hourly
   function:
     - key: resolver
       handler: index.handler
     - key: my-scheduled-function
       handler: index.trigger
-    - key: extractKeywordsFunction
-      handler: extractKeywords.handler
-  scheduledTrigger:
-    - key: example-scheduled-trigger
-      function: my-scheduled-function
-      interval: hour # Runs hourly
+    - key: fetchContents
+      handler: action.fetchContents
+    - key: registerKeyword
+      handler: action.registerKeyword
   rovo:agent:  
     - key: keyword-extractor-agent
-      name: "Keyword Extractor Agent"
-      description: "Extracts keywords from text using Rovo Agent"
-      prompt: |
-        You are an assistant that extracts keywords from a given text.
+      name: Keyword Extractor Agent
+      description: >
+         An agent for extracting key keyword from Confluence content.
+      prompt: >
+        Role: You are an expert text analyst specializing in extracting key keywords from the entire Confluence page text.
+
+        You always delegate the task of fetching the entire page text to an action provided by this agent.
+
+        Sections of this prompt are separated with a '----' and labeled with a title in uppercase.
+        Subsections are separated with a '---' to help you understand how the information is related.
+
+        Agent Complexity Level: Level 1. This agent performs a single task and follows straightforward guidelines
+        to ensure accurate keyword extraction.
+
+        ----
+        WORKFLOW 
+        1. The agent greets the user, identifies itself by name, and gives a summary 
+           of what it can do.
+        2. Accept a request to extract keywords from Confluence.
+        3. Perform the 'Retrieve Confluence content' job.
+        4. Perform the 'Extract keyword' job.
+        5. Perform the 'Register keyword' to register the list the extracted keyword created in the previous step.
+        ----
+
+        ----
+        JOBS
+
+        ---
+        Retrieve Confluence content
+        1. Fetch the text of the Confluence contents using the 'fetch-contents' action.
+        2. Return the URL of the Confluence contents.
+        ---
+        Extract keyword
+
+        Steps:
+        1. Review the text and derive a keyword based on it.
+        2. Return the list the extracted keyword for each content.
+        ---
+        Register keyword
+
+        Steps:
+        1. Register the list the extracted keyword generated separately using the 'register-keyword' action.
+        2. Each invocation of the 'register-keyword' action will return JSON comprising 1 fields. The keywords field is a string
+        field containing a potentially modified version of the keyword.
+        ----
+
+        ----
+        TEMPLATES
+
+        # Templates section can be omitted as formatting is no longer required.
+        ----
+
+      conversationStarters:
+        - Extract keywords from all documents.
+
       actions:
-        - extract-keywords
+        - fetch-contents
+        - register-keyword
   action: 
-    - key: extract-keywords
-      name: "Extract Keywords"
-      function: resolver
-      actionVerb: TRIGGER
-      description: |
-        Extract keywords from the provided text.
+    - key: fetch-contents
+      function: fetchContents
+      actionVerb: GET
+      description: >
+        This action fetches the text of Confluence contents.
+    - key: register-keyword
+      function: registerKeyword
+      actionVerb: CREATE
+      description: >
+        This action registers keyword.
       inputs:
-        text:
-          title: Text to Extract Keywords From
+        contentId:
+          title: Content ID
           type: string
           required: true
-          description: "The text from which to extract keywords."
+          description: |
+            "The ID of the Confluence content to fetch the text of."
+        keywords:
+          title: Keywords
+          type: string
+          required: true
+          description: |
+            "The keywords of the Confluence content."
 resources:
   - key: main
     path: static/hello-world/build
@@ -51,9 +116,11 @@ permissions:
   scopes:
     - write:confluence-content
     - read:confluence-content.all
+    - read:content.metadata:confluence
     - search:confluence
     - read:page:confluence
     - storage:app
+    
   content:
     styles:
       - 'unsafe-inline'
