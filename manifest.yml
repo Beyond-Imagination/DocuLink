@@ -13,12 +13,17 @@ modules:
       handler: index.trigger
     - key: hierarchyTrigger
       handler: index.hierarchyTrigger
+    - key: nodesTrigger
+      handler: index.nodesTrigger
   scheduledTrigger:
     - key: example-scheduled-trigger
       function: my-scheduled-function
       interval: hour # Runs hourly
     - key: hierarchy-scheduled-trigger
       function: hierarchyTrigger
+      interval: hour # Runs hourly
+    - key: nodes-scheduled-trigger
+      function: nodesTrigger
       interval: hour # Runs hourly
 
 resources:

@@ -8,6 +8,17 @@ import retextPos from 'retext-pos'
 
 const resolver = new Resolver();
 
+resolver.define('getNodes', async (req) => {
+  let graphs = await storage.get('nodes');
+
+  if (!graphs) {
+    graphs = await getNodes(graphs);
+    await storage.set('nodes', graphs);
+  }
+
+  return graphs;
+});
+
 resolver.define('getKeywordGraphs', async (req) => {
   let graphs = await storage.get('keyword');
 
@@ -38,6 +49,10 @@ resolver.define('getPage', async (req) => {
 });
 
 export const handler = resolver.getDefinitions();
+
+export const nodesTrigger = async ({ context }) => {
+  await storage.set('nodes', await getNodes());
+};
 
 export const trigger = async ({ context }) => {
   console.log('Scheduled trigger invoked');
@@ -123,6 +138,50 @@ async function getKeywordGraphs() {
   return {
     nodes: docs,
     links: links,
+  }
+}
+
+async function getNodes() {
+  const systemInfo = await api.asUser().requestConfluence(route`/wiki/rest/api/settings/systemInfo`, {
+    headers: {
+      'Accept': 'application/json'
+    }
+  });
+  const systemInfoResponse = await systemInfo.json()
+  const baseUrl = systemInfoResponse.baseUrl
+
+  const response = await api.asApp().requestConfluence(route`/wiki/api/v2/pages?body-format=atlas_doc_format&limit=100`, {
+    headers: {
+      'Accept': 'application/json'
+    }
+  });
+
+  const result = await response.json()
+  const docs = []
+
+  for (const d of result.results) {
+    try {
+      const docUrl = baseUrl + d._links.webui
+      const authorName = await getUserInfo(d.authorId)
+      const createdAt = new Date(d.createdAt).toLocaleDateString()
+
+      docs.push({
+        id: d.id,
+        title: d.title,
+        // body: body,
+        searched: false,
+        url: docUrl,
+        authorName: authorName,
+        status: d.status,
+        createdAt: createdAt
+      })
+    } catch (e) {
+      console.log(e)
+    }
+  }
+
+  return {
+    nodes: docs,
   }
 }
 
