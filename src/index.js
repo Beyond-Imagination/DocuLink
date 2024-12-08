@@ -19,6 +19,17 @@ resolver.define('getGraphs', async (req) => {
   return graphs;
 });
 
+resolver.define('retrieveKeywords', async (req) => {
+  try {
+    const docs = (await storage.get('docs')) || [];
+    const links = (await storage.get('links')) || [];
+
+    return { docs, links };
+  } catch (error) {
+    console.error(`Error in retrieveData: ${error.message}`);
+    throw error;
+  }
+});
 
 resolver.define('getPage', async (req) => {
   const id = 98413

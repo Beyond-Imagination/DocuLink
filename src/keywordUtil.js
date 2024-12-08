@@ -1,45 +1,83 @@
-import { updateContentProperty, createContentProperty, getContentProperties } from './confluenceUtil';
+import { getDocumentInfo } from './confluenceUtil';
+import { storage } from '@forge/api';
 
-const propertKeyPrefix = 'keyword';
+let keywordMap = new Map(); 
+const links = [];
 
-export const storeKeyword = async (contentId, keyword) => {
-      const key = propertKeyPrefix;
-      const value = JSON.stringify({ keywords: keywords});
-      const contentProperties = await getContentProperties(contentId);
+export const storeKeyword = async (contentId, keywords) => {
+  try {
+    // Confluence에서 문서 정보 가져오기
+    const { title, url } = await getDocumentInfo(contentId);
 
-      console.log(`storeKeyword: contentProperties = ${JSON.stringify(contentProperties, null, 2)}`);
+    const document = {
+      id: contentId,
+      title,
+      keywords,
+      searched: false,
+      url,
+    };
 
-      const existingContentProperty = await findContentProperty(contentProperties);
-      if (existingContentProperty) {
-        // Just in case the answer has changed...
-        await updateContentProperty(contentId, existingContentProperty.id, key, value, existingContentProperty.version.number + 1);
-      } else {
-        await createContentProperty(contentId, key, value);
-      }
+    await processDocument(document);
+  } catch (error) {
+    console.error(`Error in storeKeyword: ${error.message}`);
   }
+}
 
-export const retrieveKeyword = async (contentId) => {
-    const contentProperties = await getContentProperties(contentId);
+const processDocument = async (d) => {
+  try {
+    // 스토리지에서 기존 데이터 가져오기
+    const docs = (await storage.get('docs')) || [];
+    const links = (await storage.get('links')) || [];
+    const keywordMapObj = (await storage.get('keywordMap')) || {};
+    let keywordMap = new Map(Object.entries(keywordMapObj));
 
-    console.log(`retrieveKeyword: contentProperties = ${JSON.stringify(contentProperties, null, 2)}`);
-
-    for (const contentProperty of contentProperties) {
-      if (contentProperty.key.startsWith(propertKeyPrefix)) {
-        const value = JSON.parse(contentProperty.value);
-      }
+    // 이미 저장된 문서인지 확인
+    const existingDoc = docs.find(doc => doc.id === d.id);
+    if (!existingDoc) {
+      docs.push(d);
     }
-    return value.keyword;
-  }
 
-  const findContentProperty = (contentProperties) => {
-    for (const contentProperty of contentProperties) {
-      if (contentProperty.key.startsWith(propertKeyPrefix)) {
-          return contentProperty
+    // 각 키워드에 대해 keywordMap과 links 업데이트
+    for (const word of d.keywords) {
+      let docIds = keywordMap.get(word) || [];
+
+      // 기존 문서 ID 각각에 대해 링크 생성
+      for (const id of docIds) {
+        // 중복 링크 방지
+        const linkExists = links.some(
+          (link) =>
+            (link.source === id && link.target === d.id) ||
+            (link.source === d.id && link.target === id)
+        );
+        if (!linkExists) {
+          links.push({ source: id, target: d.id });
+        }
       }
-    }
-    return undefined;
-  }
 
-  export const logResponseError = async (functionName, response) => {
-    console.error(`${functionName}: Error: ${response.status} ${response.statusText}: ${await response.text()}`);
+      // 현재 문서 ID를 추가하여 keywordMap 업데이트
+      docIds.push(d.id);
+      keywordMap.set(word, docIds);
+    }
+
+    // 변경된 데이터 스토리지에 저장
+    await storage.set('docs', docs);
+    await storage.set('links', links);
+    await storage.set('keywordMap', Object.fromEntries(keywordMap));
+
+  } catch (error) {
+    console.error(`Error in processDocument: ${error.message}`);
+    throw error;
   }
+}
+
+export const retrieveData = async () => {
+  try {
+    const docs = (await storage.get('docs')) || [];
+    const links = (await storage.get('links')) || [];
+
+    return { docs, links };
+  } catch (error) {
+    console.error(`Error in retrieveData: ${error.message}`);
+    throw error;
+  }
+};

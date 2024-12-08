@@ -17,8 +17,8 @@ modules:
       handler: index.trigger
     - key: fetchContents
       handler: action.fetchContents
-    - key: registerKeyword
-      handler: action.registerKeyword
+    - key: registerKeywords
+      handler: action.registerKeywords
   rovo:agent:  
     - key: keyword-extractor-agent
       name: Keyword Extractor Agent
@@ -26,46 +26,45 @@ modules:
          An agent for extracting key keyword from Confluence content.
       prompt: >
         Role: You are an expert text analyst specializing in extracting key keywords from the entire Confluence page text.
-
-        You always delegate the task of fetching the entire page text to an action provided by this agent.
-
+        
+        You always delegate the fetching of the Confluence pages to an action provided by this agent.
+        
         Sections of this prompt are separated with a '----' and labeled with a title in uppercase.
         Subsections are separated with a '---' to help you understand how the information is related.
 
-        Agent Complexity Level: Level 1. This agent performs a single task and follows straightforward guidelines
+        Agent Complexity Level: Level 2. This agent handles multiple tasks and requires specific guidelines 
         to ensure accurate keyword extraction.
 
         ----
         WORKFLOW 
         1. The agent greets the user, identifies itself by name, and gives a summary 
            of what it can do.
-        2. Accept a request to extract keywords from Confluence.
-        3. Perform the 'Retrieve Confluence content' job.
-        4. Perform the 'Extract keyword' job.
-        5. Perform the 'Register keyword' to register the list the extracted keyword created in the previous step.
-        ----
+        2. Accept a request to extract key keywords from all Confluence pages.
+        3. Perform the 'Fetch contents' job.
+        4. Use the page information retrieved in the previous step to perform the 'Extract keywords' job.
+        5. Perform the 'Register keywords' job to register each of the Confluence page ID and keywords created in the previous step.
 
         ----
         JOBS
 
         ---
-        Retrieve Confluence content
-        1. Fetch the text of the Confluence contents using the 'fetch-contents' action.
-        2. Return the URL of the Confluence contents.
-        ---
-        Extract keyword
+        Fetch contents
 
         Steps:
-        1. Review the text and derive a keyword based on it.
-        2. Return the list the extracted keyword for each content.
+        1. Fetch the text of the Confluence contents from all Confluence pages using the 'fetch-contents' action.
+        
         ---
-        Register keyword
+        Extract keywords
 
         Steps:
-        1. Register the list the extracted keyword generated separately using the 'register-keyword' action.
-        2. Each invocation of the 'register-keyword' action will return JSON comprising 1 fields. The keywords field is a string
-        field containing a potentially modified version of the keyword.
-        ----
+        1. Review the text and derive key keywords with the Confluence page ID from all Confluence pages.
+        2. Return key keywords with the Confluence page ID.
+       
+        ---
+        Register keywords
+
+        Steps:
+        1. Invoke the 'register-keywords' action for each Confluence page using the Confluence page ID and the extracted key keywords, ensuring that the action is called individually for all documents.
 
         ----
         TEMPLATES
@@ -78,25 +77,27 @@ modules:
 
       actions:
         - fetch-contents
-        - register-keyword
+        - register-keywords
   action: 
     - key: fetch-contents
+      name: fetch-contents
       function: fetchContents
       actionVerb: GET
       description: >
         This action fetches the text of Confluence contents.
-    - key: register-keyword
-      function: registerKeyword
+    - key: register-keywords
+      name: register-keywords
+      function: registerKeywords
       actionVerb: CREATE
       description: >
-        This action registers keyword.
+        This action registers keywords.
       inputs:
         contentId:
           title: Content ID
           type: string
           required: true
           description: |
-            "The ID of the Confluence content to fetch the text of."
+            "The ID of the Confluence page to fetch the text of."
         keywords:
           title: Keywords
           type: string
@@ -117,6 +118,7 @@ permissions:
     - write:confluence-content
     - read:confluence-content.all
     - read:content.metadata:confluence
+    - read:confluence-content.summary
     - search:confluence
     - read:page:confluence
     - storage:app

@@ -17,8 +17,10 @@ function App() {
     setIsSearching(true);
     try{
       const result = await invoke('getGraphs');
+      const result2 = await invoke('retrieveKeywords');
 
       console.log(result)
+      console.log(result2)
 
       setGraphData(result)
     } finally {
