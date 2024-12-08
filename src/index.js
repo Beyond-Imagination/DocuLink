@@ -8,12 +8,12 @@ import retextPos from 'retext-pos'
 
 const resolver = new Resolver();
 
-resolver.define('getGraphs', async (req) => {
-  let graphs = await storage.get('graphs');
+resolver.define('getKeywordGraphs', async (req) => {
+  let graphs = await storage.get('keyword');
 
   if (!graphs) {
-    graphs = await getGraphs()
-    await storage.set('graphs', graphs);
+    graphs = await getKeywordGraphs()
+    await storage.set('keyword', graphs);
   }
 
   return graphs;
@@ -43,12 +43,12 @@ export const trigger = async ({ context }) => {
   console.log('Scheduled trigger invoked');
   console.log(context);
 
-  await storage.set('graphs', await getGraphs());
+  await storage.set('keyword', await getKeywordGraphs());
 
   // Add your business logic here
 };
 
-async function getGraphs() {
+async function getKeywordGraphs() {
 
   // This is used to get the base URL of the Confluence instance
   const systemInfo = await api.asUser().requestConfluence(route`/wiki/rest/api/settings/systemInfo`, {
@@ -159,4 +159,88 @@ async function getUserInfo(accountId) {
   });
   const result = await response.json()
   return result.displayName;
+}
+
+resolver.define('getHierarchy', async (req) => {
+  let graphs = await storage.get('hierarchy');
+
+  if (!graphs) {
+    graphs = await getHierarchy()
+    await storage.set('hierarchy', graphs);
+  }
+
+  return graphs;
+})
+
+export const hierarchyTrigger = async ({ context }) => {
+  await storage.set('hierarchy', await getHierarchy());
+};
+
+async function getHierarchy() {
+  const response = await api.asApp().requestConfluence(route`/wiki/api/v2/spaces`, {
+    headers: {
+      'Accept': 'application/json'
+    }
+  }).then(res => res.json());
+
+  const promises = response.results.map((result) => {
+    return new Promise((resolve, reject) => {
+      api.asApp().requestConfluence(route`/wiki/api/v2/spaces/${result.id}/pages?depth=root&limit=250`, {
+        headers: {
+          'Accept': 'application/json'
+        }
+
+      }).then(res => res.json())
+        .then(response => {
+        resolve(response.results)
+      }).catch(error => {
+        reject(error)
+      });
+    })
+  })
+
+  let parentPages = (await Promise.all(promises)).reduce(function (acc, cur) {
+    return [...acc, ...cur];
+  });
+  parentPages = parentPages.map((page) => {
+    return page.id
+  })
+
+  const links = []
+  while(parentPages.length > 0) {
+    const promises = parentPages.map((id) => {
+      return new Promise((resolve, reject) => {
+        api.asApp().requestConfluence(route`/wiki/api/v2/pages/${id}/children`, {
+          headers: {
+            'Accept': 'application/json'
+          }
+        }).then(res => res.json())
+          .then(response => {
+            console.log(response)
+          resolve({
+            parent: id,
+            child: response.results
+          })
+        }).catch(error => {
+          reject(error)
+        });
+      })
+    })
+
+    let pages = await Promise.all(promises);
+    parentPages = []
+    pages.forEach(page => {
+      page.child.forEach((child) => {
+        links.push({
+          source: page.parent,
+          target: child.id,
+        })
+        parentPages.push(child.id)
+      })
+    })
+  }
+
+  return {
+    links: links,
+  }
 }

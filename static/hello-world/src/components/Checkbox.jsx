@@ -6,7 +6,9 @@ function CheckBox({ title, onChecked }) {
   const handleChange = (e) => {
     const checked = e.target.checked;
     setIsChecked(checked);
-    if (onChecked) onChecked(checked);
+    if (onChecked) {
+        onChecked(title, checked);
+    }
   };
 
   return (
