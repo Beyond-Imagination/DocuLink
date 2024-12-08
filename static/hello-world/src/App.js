@@ -13,33 +13,27 @@ function App() {
   const [graphData, setGraphData] = useState({ nodes: [], links: [] });
   const [is3D, setIs3D] = useState(false)
   const [isSearching, setIsSearching] = useState(false);
+  const [searchWord, setSearchWord] = useState('');
+  const [tooltipContent, setTooltipContent] = useState(null);
+  let nodes = graphData.nodes;
 
   useEffect(async () => {
     setIsSearching(true);
-    try{
+    try {
       const result = await invoke('getGraphs');
-
       console.log(result)
-
       setGraphData(result)
     } finally {
       setIsSearching(false);
     }
   }, []);
 
-  const [searchWord, setSearchWord] = useState('');
-
   const handleSearch = async () => {
     setIsSearching(true);
     try {
       const searchedPageIdList = await invoke('searchByAPI', { searchWord });
-      let nodes = graphData.nodes;
       for(const node of nodes) {
-        if(searchedPageIdList.includes(node.id)) {
-          node.searched = true;
-        } else {
-          node.searched = false;
-        }
+        node.searched = searchedPageIdList.includes(node.id);
       }
       setGraphData({
         nodes: nodes,
@@ -51,7 +45,6 @@ function App() {
   };
 
   const handleSearchReset = async () => {
-    let nodes = graphData.nodes;
     for(const node of nodes) {
       node.searched = false;
     }
@@ -113,6 +106,28 @@ function App() {
               </div>
             </div>
           )}
+          {tooltipContent && (
+            <div 
+              className='absolute bottom-0 right-0 bg-black/70 text-yellow-300 p-[1rem] rounded pointer-events-none z-[1000] text-start'
+              >
+                <div className='text-xl font-bold'>
+                  {tooltipContent.title}
+                </div>
+                <div className='text-base'>
+                  <span className='font-semibold'>Status:</span>
+                  <span className='text-base'>{tooltipContent.status}</span>
+                </div>
+                <div className='text-base'>
+                  <span className='font-semibold'>Author:</span>
+                  <span className='text-base'>{tooltipContent.authorName}</span>
+                </div>
+                <div className='text-base'>
+                  <span className='font-semibold'>Created:</span>
+                  <span className='text-base'>{tooltipContent.createdAt}</span>
+                </div>
+              </div>
+            )
+          }
           { is3D ?
               <ForceGraph3D
                   graphData={graphData}
@@ -131,6 +146,18 @@ function App() {
                       if (node.url) {
                           router.open(node.url);
                       }
+                  }}
+                  onNodeHover={(node, prevNode) => {
+                    if (node) {
+                      setTooltipContent({
+                        title: node.title,
+                        authorName: node.authorName,
+                        createdAt: node.createdAt,
+                        status: node.status,
+                      });
+                    } else {
+                      setTooltipContent(null);
+                    }
                   }}
               /> :
               <ForceGraph2D
@@ -163,6 +190,18 @@ function App() {
                   onNodeClick={(node) => {
                     if (node.url) {
                       router.open(node.url);
+                    }
+                  }}
+                  onNodeHover={(node, prevNode) => {
+                    if (node) {
+                      setTooltipContent({
+                        title: node.title,
+                        authorName: node.authorName,
+                        createdAt: node.createdAt,
+                        status: node.status,
+                      });
+                    } else {
+                      setTooltipContent(null);
                     }
                   }}
               />

@@ -100,6 +100,8 @@ async function getGraphs() {
         }
       }
       const docUrl = baseUrl + d._links.webui
+      const authorName = await getUserInfo(d.authorId)
+      const createdAt = new Date(d.createdAt).toLocaleDateString()
 
       docs.push({
         id: d.id,
@@ -107,7 +109,10 @@ async function getGraphs() {
         // body: body,
         keywords: keywords,
         searched: false,
-        url: docUrl
+        url: docUrl,
+        authorName: authorName,
+        status: d.status,
+        createdAt: createdAt
       })
     } catch (e) {
       console.log(e)
@@ -144,4 +149,14 @@ async function searchByAPI(searchWord) {
   }
 
   return pages;
+}
+
+async function getUserInfo(accountId) {
+  const response = await api.asUser().requestConfluence(route`/wiki/rest/api/user?accountId=${accountId}`, {
+    headers: {
+      'Accept': 'application/json'
+    }
+  });
+  const result = await response.json()
+  return result.displayName;
 }
