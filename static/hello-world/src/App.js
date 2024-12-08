@@ -12,6 +12,7 @@ function App() {
   const [appWidth, setAppWidth] = useState(window.innerWidth);
   const [graphData, setGraphData] = useState({ nodes: [], links: [] });
   const [checkbox, setCheckbox] = useState({keyword: false, hierarchy: false});
+  const [nodes, setNodes] = useState({ nodes: [] });
   const [keyword, setKeyword] = useState({ nodes: [], links: [] });
   const [hierarchy, setHierarchy] = useState({ nodes: [], links: [] });
   const [is3D, setIs3D] = useState(false)
@@ -19,16 +20,20 @@ function App() {
   const [searchWord, setSearchWord] = useState('');
   const [tooltipContent, setTooltipContent] = useState(null);
 
-  let nodes = graphData.nodes;
-
   useEffect(async () => {
     setIsSearching(true);
     try{
-      const result = await invoke('getKeywordGraphs');
-      setKeyword(result)
+      const result = await invoke('getNodes');
+      console.log('nodes',result);
+      setNodes(result)
     } finally {
       setIsSearching(false);
     }
+  }, []);
+
+  useEffect(async () => {
+    const result = await invoke('getKeywordGraphs');
+    setKeyword(result)
   }, []);
 
   useEffect(async () => {
@@ -84,19 +89,18 @@ function App() {
 
   useEffect(() => {
     let graph = {
-      nodes: [],
+      nodes: nodes.nodes,
       links: [],
     }
 
     if (checkbox.keyword) {
-      graph.nodes.push(...keyword.nodes);
       graph.links.push(...keyword.links);
     }
     if (checkbox.hierarchy) {
       graph.links.push(...hierarchy.links);
     }
     setGraphData(graph);
-  }, [checkbox]);
+  }, [nodes, checkbox]);
 
   useEffect(() => {
     const handleResize = () => {
