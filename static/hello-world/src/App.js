@@ -11,20 +11,32 @@ import CheckBox from "./components/Checkbox";
 function App() {
   const [appWidth, setAppWidth] = useState(window.innerWidth);
   const [graphData, setGraphData] = useState({ nodes: [], links: [] });
+  const [checkbox, setCheckbox] = useState({keyword: false, hierarchy: false});
+  const [keyword, setKeyword] = useState({ nodes: [], links: [] });
+  const [hierarchy, setHierarchy] = useState({ nodes: [], links: [] });
   const [is3D, setIs3D] = useState(false)
   const [isSearching, setIsSearching] = useState(false);
   const [searchWord, setSearchWord] = useState('');
   const [tooltipContent, setTooltipContent] = useState(null);
+
   let nodes = graphData.nodes;
 
   useEffect(async () => {
     setIsSearching(true);
-    try {
-      const result = await invoke('getGraphs');
-      console.log(result)
-      setGraphData(result)
+    try{
+      const result = await invoke('getKeywordGraphs');
+      setKeyword(result)
     } finally {
       setIsSearching(false);
+    }
+  }, []);
+
+  useEffect(async () => {
+    try{
+      const result = await invoke('getHierarchy');
+
+      setHierarchy(result)
+    } finally {
     }
   }, []);
 
@@ -54,10 +66,37 @@ function App() {
     })
   };
 
-  // checkbox example event
   const handleSayHello = (checked) => {
     checked ? console.log('Hello, world!') : console.log('Goodbye, world!');
+  }
+
+  // checkbox example event
+  const handleCheckbox = (key, checked) => {
+    let newCheckbox = {...checkbox};
+    if(key === "keyword") {
+      newCheckbox.keyword = checked;
+    } else if(key === "page hierarchy") {
+      newCheckbox.hierarchy = checked;
+    }
+
+    setCheckbox(newCheckbox);
   };
+
+  useEffect(() => {
+    let graph = {
+      nodes: [],
+      links: [],
+    }
+
+    if (checkbox.keyword) {
+      graph.nodes.push(...keyword.nodes);
+      graph.links.push(...keyword.links);
+    }
+    if (checkbox.hierarchy) {
+      graph.links.push(...hierarchy.links);
+    }
+    setGraphData(graph);
+  }, [checkbox]);
 
   useEffect(() => {
     const handleResize = () => {
@@ -67,7 +106,7 @@ function App() {
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
-  
+
   return (
     <div>
       <div className={`relative`}>
@@ -86,8 +125,12 @@ function App() {
           </div>
           <div className='flex justify-end px-[1rem] space-y-2'>
             <CheckBox
-              title='Say hello'
-              onChecked={handleSayHello}
+                title='keyword'
+                onChecked={handleCheckbox}
+            />
+            <CheckBox
+                title='page hierarchy'
+                onChecked={handleCheckbox}
             />
           </div>
         </div>

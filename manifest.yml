@@ -11,9 +11,14 @@ modules:
       handler: index.handler
     - key: my-scheduled-function
       handler: index.trigger
+    - key: hierarchyTrigger
+      handler: index.hierarchyTrigger
   scheduledTrigger:
     - key: example-scheduled-trigger
       function: my-scheduled-function
+      interval: hour # Runs hourly
+    - key: hierarchy-scheduled-trigger
+      function: hierarchyTrigger
       interval: hour # Runs hourly
 
 resources:
@@ -31,6 +36,7 @@ permissions:
     - read:confluence-content.all
     - search:confluence
     - read:page:confluence
+    - read:space:confluence
     - storage:app
     - manage:confluence-configuration
     - read:confluence-user
