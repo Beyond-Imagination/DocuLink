@@ -42,7 +42,6 @@ modules:
         2. Accept a request to extract key keywords from all Confluence pages.
         3. Perform the 'Fetch contents' job.
         4. Use the page information retrieved in the previous step to perform the 'Extract keywords' job.
-        5. Perform the 'Register keywords' job to register each of the Confluence page ID and keywords created in the previous step.
 
         ----
         JOBS
@@ -58,13 +57,9 @@ modules:
 
         Steps:
         1. Review the text and derive key keywords with the Confluence page ID from all Confluence pages.
-        2. Return key keywords with the Confluence page ID.
+        2. Use the 'register-keywords' action for each Confluence page using the Confluence page ID and the extracted key keywords.
+        3. Return key keywords with the Confluence page ID.
        
-        ---
-        Register keywords
-
-        Steps:
-        1. Invoke the 'register-keywords' action for each Confluence page using the Confluence page ID and the extracted key keywords, ensuring that the action is called individually for all documents.
 
         ----
         TEMPLATES
