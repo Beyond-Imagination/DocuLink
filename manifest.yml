@@ -1,10 +1,10 @@
 modules:
   confluence:globalPage:
-    - key: confluence-custom-ui-hello-world
+    - key: DocuLink
       resource: main
       resolver:
         function: resolver
-      title: confluence-custom-ui
+      title: DocuLink
       route: doculink
   function:
     - key: resolver
