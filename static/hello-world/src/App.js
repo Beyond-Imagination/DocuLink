@@ -49,31 +49,31 @@ function App() {
     setIsSearching(true);
     try {
       const searchedPageIdList = await invoke('searchByAPI', { searchWord });
-      for(const node of nodes) {
+      let newNodes = []
+      for(const node of nodes.nodes) {
         node.searched = searchedPageIdList.includes(node.id);
+        newNodes.push(node);
       }
-      setGraphData({
-        nodes: nodes,
-        links: graphData.links,
-      });
+      const result = {
+        nodes : newNodes
+      }
+      setNodes(result);
     } finally {
       setIsSearching(false);
     }
   };
 
   const handleSearchReset = async () => {
-    for(const node of nodes) {
+    let newNodes = []
+    for(const node of nodes.nodes) {
       node.searched = false;
+      newNodes.push(node);
     }
-    setGraphData({
-      nodes: nodes,
-      links: graphData.links,
-    })
+    const result = {
+      nodes : newNodes
+    }
+    setNodes(result);
   };
-
-  const handleSayHello = (checked) => {
-    checked ? console.log('Hello, world!') : console.log('Goodbye, world!');
-  }
 
   // checkbox example event
   const handleCheckbox = (key, checked) => {
