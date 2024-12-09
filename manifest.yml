@@ -5,7 +5,7 @@ modules:
       resolver:
         function: resolver
       title: confluence-custom-ui
-      route: hello-world
+      route: doculink
   function:
     - key: resolver
       handler: index.handler
