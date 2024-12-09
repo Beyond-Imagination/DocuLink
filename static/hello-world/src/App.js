@@ -127,15 +127,17 @@ function App() {
               setIs3D={setIs3D}
             />
           </div>
-          <div className='flex justify-end px-[1rem] space-y-2'>
-            <CheckBox
+          <div className='px-[1rem] flex justify-end'>
+            <div className='space-y-2'>
+              <CheckBox
                 title='keyword'
                 onChecked={handleCheckbox}
-            />
-            <CheckBox
+              />
+              <CheckBox
                 title='page hierarchy'
                 onChecked={handleCheckbox}
-            />
+              />
+            </div>
           </div>
         </div>
           {isSearching && (
