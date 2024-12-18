@@ -132,10 +132,12 @@ function App() {
               <CheckBox
                 title='keyword'
                 onChecked={handleCheckbox}
+                tooltip='Connect pages by keyword'
               />
               <CheckBox
                 title='page hierarchy'
                 onChecked={handleCheckbox}
+                tooltip='Connect pages by page hierarchy'
               />
             </div>
           </div>
