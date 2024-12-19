@@ -105,6 +105,7 @@ async function getKeywordGraphs() {
               links.push({
                 source: id,
                 target: d.id,
+                type: 'keyword',
               })
             })
           } else {
@@ -293,6 +294,7 @@ async function getHierarchy() {
         links.push({
           source: page.parent,
           target: child.id,
+          type: 'hierarchy',
         })
         parentPages.push(child.id)
       })
