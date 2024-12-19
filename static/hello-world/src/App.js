@@ -33,13 +33,20 @@ function App() {
 
   useEffect(async () => {
     const result = await invoke('getKeywordGraphs');
+    result.links = result.links.map(link => {
+      link.type = 'keyword'
+      return link
+    });
     setKeyword(result)
   }, []);
 
   useEffect(async () => {
     try{
       const result = await invoke('getHierarchy');
-
+      result.links = result.links.map(link => {
+        link.type = 'hierarchy'
+        return link
+      });
       setHierarchy(result)
     } finally {
     }
@@ -185,6 +192,14 @@ function App() {
                   width={appWidth}
                   height={800}
                   linkOpacity={0.8}
+                  linkColor={link=> {
+                    if(link.type === 'keyword') {
+                      return '#ffff00'
+                    } else if (link.type === 'hierarchy') {
+                      return '#00ffff'
+                    }
+                    return '#ffffff'
+                  }}
                   // backgroundColor={'black'}
                   controlType={'orbit'}
                   nodeThreeObject={node => {
@@ -215,7 +230,14 @@ function App() {
                   graphData={graphData}
                   width={appWidth}
                   height={800}
-                  linkColor={() => 'rgba(255,255,255,0.8)'}
+                  linkColor={link=> {
+                    if(link.type === 'keyword') {
+                      return '#ffff00'
+                    } else if (link.type === 'hierarchy') {
+                      return '#00ffff'
+                    }
+                    return '#ffffff'
+                  }}
                   backgroundColor={'rgba(0,0,16,255)'}
                   nodeCanvasObject={(node, ctx, globalScale) => {
                     const label = node.title;
