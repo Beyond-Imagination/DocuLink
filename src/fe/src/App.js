@@ -8,6 +8,7 @@ import SearchBar from './components/SearchBar';
 import SwitchButton from "./components/SwitchButton";
 import CheckBox from "./components/Checkbox";
 import { getLinkColor } from './utils/utils';
+import PageNodeTooltip from './components/PageNodeTooltip';
 
 function App() {
   const [appWidth, setAppWidth] = useState(window.innerWidth);
@@ -188,25 +189,12 @@ function App() {
             </div>
           )}
           {tooltipContent && (
-            <div 
-              className='absolute bottom-0 right-0 bg-black/70 text-yellow-300 p-[1rem] rounded pointer-events-none z-[1000] text-start'
-              >
-                <div className='text-xl font-bold'>
-                  {tooltipContent.title}
-                </div>
-                <div className='text-base'>
-                  <span className='font-semibold'>Status:</span>
-                  <span className='text-base'>{tooltipContent.status}</span>
-                </div>
-                <div className='text-base'>
-                  <span className='font-semibold'>Author:</span>
-                  <span className='text-base'>{tooltipContent.authorName}</span>
-                </div>
-                <div className='text-base'>
-                  <span className='font-semibold'>Created:</span>
-                  <span className='text-base'>{tooltipContent.createdAt}</span>
-                </div>
-              </div>
+            <PageNodeTooltip 
+              title={tooltipContent.title}
+              status={tooltipContent.status}
+              createdAt={tooltipContent.createdAt}
+              authorName={tooltipContent.authorName}
+            />
             )
           }
           { is3D ?
