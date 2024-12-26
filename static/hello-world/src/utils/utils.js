@@ -1,4 +1,4 @@
-function getNodoColor(type) {
+function getLinkColor(type) {
   if(type === 'keyword') {
     return '#ffff00'
   } else if (type === 'hierarchy') {
@@ -7,4 +7,4 @@ function getNodoColor(type) {
   return '#ffffff'
 }
 
-export { getNodoColor }
+export { getLinkColor }
