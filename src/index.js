@@ -74,14 +74,12 @@ async function getKeywordGraphs() {
   const systemInfoResponse = await systemInfo.json()
   const baseUrl = systemInfoResponse.baseUrl
 
-  // 모든 페이지 가져오기
   const results = await getAllPages();
   
   const docs = []
   let keywordMap = new Map()
   const links = []
   
-  // 기존의 for 루프 로직을 results.forEach로 변경
   for (const d of results) {
     try {
       const doc = convert(JSON.parse(d.body.atlas_doc_format.value))
