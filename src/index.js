@@ -236,72 +236,99 @@ export const hierarchyTrigger = async ({ context }) => {
   await storage.set('hierarchy', await getHierarchy());
 };
 
+async function getAllPagesInSpace(spaceId, depth = 'root') {
+  let allResults = [];
+  let cursor = null;
+  
+  while (true) {
+    const response = await api.asApp().requestConfluence(
+      route`/wiki/api/v2/spaces/${spaceId}/pages?depth=${depth}&limit=100${cursor ? `&cursor=${cursor}` : ''}`,
+      {
+        headers: {
+          'Accept': 'application/json'
+        }
+      }
+    );
+    
+    const result = await response.json();
+    allResults = [...allResults, ...result.results];
+    
+    if (!result._links?.next) {
+      break;
+    }
+    
+    const nextUrl = new URL(result._links.next);
+    cursor = nextUrl.searchParams.get('cursor');
+  }
+  
+  return allResults;
+}
+
+async function getAllChildren(pageId) {
+  let allResults = [];
+  let cursor = null;
+  
+  while (true) {
+    const response = await api.asApp().requestConfluence(
+      route`/wiki/api/v2/pages/${pageId}/children?limit=100${cursor ? `&cursor=${cursor}` : ''}`,
+      {
+        headers: {
+          'Accept': 'application/json'
+        }
+      }
+    );
+    
+    const result = await response.json();
+    allResults = [...allResults, ...result.results];
+    
+    if (!result._links?.next) {
+      break;
+    }
+    
+    const nextUrl = new URL(result._links.next);
+    cursor = nextUrl.searchParams.get('cursor');
+  }
+  
+  return allResults;
+}
+
 async function getHierarchy() {
+
   const response = await api.asApp().requestConfluence(route`/wiki/api/v2/spaces`, {
     headers: {
       'Accept': 'application/json'
     }
   }).then(res => res.json());
 
-  const promises = response.results.map((result) => {
-    return new Promise((resolve, reject) => {
-      api.asApp().requestConfluence(route`/wiki/api/v2/spaces/${result.id}/pages?depth=root&limit=250`, {
-        headers: {
-          'Accept': 'application/json'
-        }
+  const rootPages = [];
+  for (const space of response.results) {
+    const pages = await getAllPagesInSpace(space.id, 'root');
+    rootPages.push(...pages);
+  }
 
-      }).then(res => res.json())
-        .then(response => {
-        resolve(response.results)
-      }).catch(error => {
-        reject(error)
-      });
-    })
-  })
+  let parentPages = rootPages.map(page => page.id);
 
-  let parentPages = (await Promise.all(promises)).reduce(function (acc, cur) {
-    return [...acc, ...cur];
-  });
-  parentPages = parentPages.map((page) => {
-    return page.id
-  })
-
-  const links = []
-  while(parentPages.length > 0) {
-    const promises = parentPages.map((id) => {
-      return new Promise((resolve, reject) => {
-        api.asApp().requestConfluence(route`/wiki/api/v2/pages/${id}/children`, {
-          headers: {
-            'Accept': 'application/json'
-          }
-        }).then(res => res.json())
-          .then(response => {
-            console.log(response)
-          resolve({
-            parent: id,
-            child: response.results
-          })
-        }).catch(error => {
-          reject(error)
-        });
-      })
-    })
-
-    let pages = await Promise.all(promises);
-    parentPages = []
-    pages.forEach(page => {
-      page.child.forEach((child) => {
+  const links = [];
+  while (parentPages.length > 0) {
+    const newParentPages = [];
+    
+    for (const parentId of parentPages) {
+      const children = await getAllChildren(parentId);
+      
+      children.forEach(child => {
         links.push({
-          source: page.parent,
+          source: parentId,
           target: child.id,
           type: 'hierarchy',
-        })
-        parentPages.push(child.id)
-      })
-    })
+        });
+        newParentPages.push(child.id);
+      });
+    }
+    
+    parentPages = newParentPages;
   }
 
   return {
     links: links,
-  }
+  };
 }
