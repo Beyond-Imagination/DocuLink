@@ -28,7 +28,7 @@ modules:
 
 resources:
   - key: main
-    path: static/hello-world/build
+    path: src/fe/build
 
 app:
   runtime:
