@@ -12,7 +12,7 @@ fe 와 app 을 따로 build 해야 함
 
 ```shell
 # fe
-cd static/hello-world
+cd src/fe
 npm install
 npm run build
 ```
