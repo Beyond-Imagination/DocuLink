@@ -12,10 +12,11 @@ import { getLinkColor } from './utils/utils';
 function App() {
   const [appWidth, setAppWidth] = useState(window.innerWidth);
   const [graphData, setGraphData] = useState({ nodes: [], links: [] });
-  const [checkbox, setCheckbox] = useState({keyword: false, hierarchy: false});
+  const [checkbox, setCheckbox] = useState({keyword: false, hierarchy: false, labels: false});
   const [nodes, setNodes] = useState({ nodes: [] });
   const [keyword, setKeyword] = useState({ nodes: [], links: [] });
   const [hierarchy, setHierarchy] = useState({ nodes: [], links: [] });
+  const [labels, setLabels] = useState([]);
   const [is3D, setIs3D] = useState(false)
   const [isSearching, setIsSearching] = useState(false);
   const [searchWord, setSearchWord] = useState('');
@@ -49,6 +50,14 @@ function App() {
         return link
       });
       setHierarchy(result)
+    } finally {
+    }
+  }, []);
+
+  useEffect(async () => {
+    try{
+      const result = await invoke('getLabels');
+      setLabels(result)
     } finally {
     }
   }, []);
@@ -90,6 +99,8 @@ function App() {
       newCheckbox.keyword = checked;
     } else if(key === "page hierarchy") {
       newCheckbox.hierarchy = checked;
+    } else if (key === "labels") {
+      newCheckbox.labels = checked;
     }
 
     setCheckbox(newCheckbox);
@@ -106,6 +117,9 @@ function App() {
     }
     if (checkbox.hierarchy) {
       graph.links.push(...hierarchy.links);
+    }
+    if (checkbox.labels) {
+      graph.links.push(...labels);
     }
     setGraphData(graph);
   }, [nodes, checkbox]);
@@ -148,6 +162,12 @@ function App() {
                 onChecked={handleCheckbox}
                 tooltip='Connect pages by page hierarchy'
                 color={getLinkColor('hierarchy')}
+              />
+              <CheckBox
+                  title='labels'
+                  onChecked={handleCheckbox}
+                  tooltip='Connect pages by page labels'
+                  color={getLinkColor('labels')}
               />
             </div>
           </div>

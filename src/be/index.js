@@ -1,5 +1,5 @@
 import Resolver from '@forge/resolver';
-import api, { route, storage } from "@forge/api";
+import api, {route, storage} from "@forge/api";
 import { convert } from "adf-to-md";
 import {toString} from 'nlcst-to-string'
 import {retext} from 'retext'
@@ -304,4 +304,90 @@ async function getHierarchy() {
   return {
     links: links,
   }
+}
+
+export const labelsTrigger = async ({ context }) => {
+  await storage.set('labels', await getLabels());
+};
+
+resolver.define('getLabels', async (req) => {
+  let labels = await storage.get('labels');
+
+  if (!labels) {
+    labels = await getLabels();
+    await storage.set('labels', labels);
+  }
+
+  return labels;
+});
+
+async function getLabels() {
+  let links = []
+  let cursor = null;
+  while(true) {
+    let r = null
+    if (cursor) {
+      r = route`/wiki/api/v2/labels?limit=100&cursor=${cursor}`
+    } else {
+      r = route`/wiki/api/v2/labels?limit=100`
+    }
+
+    const response = await api.asApp().requestConfluence(r, {
+      headers: {
+        'Accept': 'application/json'
+      }
+    });
+
+    const result = await response.json()
+
+    if(result.results?.length === 0) {
+      break
+    }
+
+    let promises = result.results.map((label) => {
+      return new Promise((resolve, reject) => {
+        const labelId = label.id
+        const response = api.asUser().requestConfluence(route`/wiki/api/v2/labels/${labelId}/pages`, {
+          headers: {
+            'Accept': 'application/json'
+          }
+        })
+          .then(res => res.json())
+          .then(response => {
+            if (response.results.length <= 1) {
+              resolve([])
+            }
+
+            let pageLinks = []
+            for(let i=0; i<response.results.length; i++){
+              for(let j=i+1; j<response.results.length; j++) {
+                pageLinks.push({
+                  source: response.results[i].id,
+                  target: response.results[j].id,
+                  type: 'labels',
+                })
+              }
+            }
+
+            resolve(pageLinks)
+          });
+      })
+    })
+
+    let pageLinks = await Promise.all(promises);
+    pageLinks.forEach(pageLink => {
+      links.push(...pageLink)
+    })
+
+    // 다음 페이지 존재 확인
+    if(!result._links?.next) {
+      break
+    }
+
+    // 다음 페이지 cursor
+    const searchParams = new URLSearchParams(result._links?.next.split('?')[1]);
+    cursor = searchParams.get('cursor'); // page cursor
+  }
+
+  return links
 }

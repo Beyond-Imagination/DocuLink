@@ -42,6 +42,7 @@ permissions:
     - search:confluence
     - read:page:confluence
     - read:space:confluence
+    - read:label:confluence
     - storage:app
     - manage:confluence-configuration
     - read:confluence-user
