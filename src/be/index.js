@@ -1,8 +1,8 @@
 import Resolver from '@forge/resolver';
 import api, { route, storage } from "@forge/api";
 import { convert } from "adf-to-md";
-import {toString} from 'nlcst-to-string'
-import {retext} from 'retext'
+import { toString } from 'nlcst-to-string'
+import { retext } from 'retext'
 import retextKeywords from 'retext-keywords'
 import retextPos from 'retext-pos'
 
@@ -74,68 +74,87 @@ async function getKeywordGraphs() {
   const systemInfoResponse = await systemInfo.json()
   const baseUrl = systemInfoResponse.baseUrl
 
-  const results = await getAllPages();
-
   const docs = []
-  let keywordMap = new Map()
   const links = []
+  let cursor = null;
 
-  for (const d of results) {
-    try {
-      const doc = convert(JSON.parse(d.body.atlas_doc_format.value))
-      const body = doc.result.replace(/(\r\n|\n|\r)/gm, "")
+  while (true) {
+    const response = await api.asApp().requestConfluence(
+      route`/wiki/api/v2/pages?body-format=atlas_doc_format&limit=100${cursor ? `&cursor=${cursor}` : ''}`,
+      {
+        headers: {
+          'Accept': 'application/json'
+        }
+      }
+    );
 
-      const file = await retext()
+    const result = await response.json()
+    let keywordMap = new Map()
+
+    for (const d of result.results) {
+      try {
+        const doc = convert(JSON.parse(d.body.atlas_doc_format.value))
+        const body = doc.result.replace(/(\r\n|\n|\r)/gm, "")
+
+        const file = await retext()
           .use(retextPos) // Make sure to use `retext-pos` before `retext-keywords`.
           .use(retextKeywords)
           .process(body)
 
-      const keywords = []
-      if (file.data.keywords) {
-        for (const keyword of file.data.keywords) {
-          const word = toString(keyword.matches[0].node)
-          const docIds = keywordMap.get(word)
-          if(docIds) {
-            keywordMap.set(word, [...docIds, d.id])
-            docIds.forEach(id => {
-              links.push({
-                source: id,
-                target: d.id,
-                type: 'keyword',
+        const keywords = []
+        if (file.data.keywords) {
+          for (const keyword of file.data.keywords) {
+            const word = toString(keyword.matches[0].node)
+            const docIds = keywordMap.get(word)
+            if (docIds) {
+              keywordMap.set(word, [...docIds, d.id])
+              docIds.forEach(id => {
+                links.push({
+                  source: id,
+                  target: d.id,
+                  type: 'keyword',
+                })
               })
-            })
-          } else {
-            keywordMap.set(word, [d.id])
+            } else {
+              keywordMap.set(word, [d.id])
+            }
+
+            keywords.push(word)
           }
-
-          keywords.push(word)
         }
+        const docUrl = baseUrl + d._links.webui
+        const authorName = await getUserInfo(d.authorId)
+        const createdAt = new Date(d.createdAt).toLocaleDateString()
+
+        docs.push({
+          id: d.id,
+          title: d.title,
+          // body: body,
+          keywords: keywords,
+          searched: false,
+          url: docUrl,
+          authorName: authorName,
+          status: d.status,
+          createdAt: createdAt
+        })
+      } catch (e) {
+        console.log(e)
       }
-      const docUrl = baseUrl + d._links.webui
-      const authorName = await getUserInfo(d.authorId)
-      const createdAt = new Date(d.createdAt).toLocaleDateString()
-
-      docs.push({
-        id: d.id,
-        title: d.title,
-        // body: body,
-        keywords: keywords,
-        searched: false,
-        url: docUrl,
-        authorName: authorName,
-        status: d.status,
-        createdAt: createdAt
-      })
-    } catch (e) {
-      console.log(e)
     }
-  }
 
+    if (!result._links?.next) {
+      break;
+    }
+
+    const nextUrl = new URL(result._links.next);
+    cursor = nextUrl.searchParams.get('cursor');
+  }
 
   return {
     nodes: docs,
     links: links,
   }
+
 }
 
 async function getNodes() {
@@ -147,29 +166,48 @@ async function getNodes() {
   const systemInfoResponse = await systemInfo.json()
   const baseUrl = systemInfoResponse.baseUrl
 
-  const results = await getAllPages();
-
   const docs = []
+  let cursor = null;
 
-  for (const d of results) {
-    try {
-      const docUrl = baseUrl + d._links.webui
-      const authorName = await getUserInfo(d.authorId)
-      const createdAt = new Date(d.createdAt).toLocaleDateString()
+  while (true) {
+    const response = await api.asApp().requestConfluence(
+      route`/wiki/api/v2/pages?body-format=atlas_doc_format&limit=100${cursor ? `&cursor=${cursor}` : ''}`,
+      {
+        headers: {
+          'Accept': 'application/json'
+        }
+      }
+    );
 
-      docs.push({
-        id: d.id,
-        title: d.title,
-        // body: body,
-        searched: false,
-        url: docUrl,
-        authorName: authorName,
-        status: d.status,
-        createdAt: createdAt
-      })
-    } catch (e) {
-      console.log(e)
+    const result = await response.json()
+
+    for (const d of result.results) {
+      try {
+        const docUrl = baseUrl + d._links.webui
+        const authorName = await getUserInfo(d.authorId)
+        const createdAt = new Date(d.createdAt).toLocaleDateString()
+
+        docs.push({
+          id: d.id,
+          title: d.title,
+          // body: body,
+          searched: false,
+          url: docUrl,
+          authorName: authorName,
+          status: d.status,
+          createdAt: createdAt
+        })
+      } catch (e) {
+        console.log(e)
+      }
     }
+
+    if (!result._links?.next) {
+      break;
+    }
+
+    const nextUrl = new URL(result._links.next);
+    cursor = nextUrl.searchParams.get('cursor');
   }
 
   return {
@@ -193,7 +231,7 @@ async function searchByAPI(searchWord) {
   const result = await response.json()
 
   let pages = []
-  for(const page of result.results) {
+  for (const page of result.results) {
     pages.push(
       page.content.id
     )
@@ -243,10 +281,10 @@ async function getHierarchy() {
 
       }).then(res => res.json())
         .then(response => {
-        resolve(response.results)
-      }).catch(error => {
-        reject(error)
-      });
+          resolve(response.results)
+        }).catch(error => {
+          reject(error)
+        });
     })
   })
 
@@ -258,7 +296,7 @@ async function getHierarchy() {
   })
 
   const links = []
-  while(parentPages.length > 0) {
+  while (parentPages.length > 0) {
     const promises = parentPages.map((id) => {
       return new Promise((resolve, reject) => {
         api.asApp().requestConfluence(route`/wiki/api/v2/pages/${id}/children`, {
@@ -268,13 +306,13 @@ async function getHierarchy() {
         }).then(res => res.json())
           .then(response => {
             console.log(response)
-          resolve({
-            parent: id,
-            child: response.results
-          })
-        }).catch(error => {
-          reject(error)
-        });
+            resolve({
+              parent: id,
+              child: response.results
+            })
+          }).catch(error => {
+            reject(error)
+          });
       })
     })
 
@@ -295,32 +333,4 @@ async function getHierarchy() {
   return {
     links: links,
   }
-}
-
-async function getAllPages() {
-  let allResults = [];
-  let cursor = null;
-
-  while (true) {
-    const response = await api.asApp().requestConfluence(
-      route`/wiki/api/v2/pages?body-format=atlas_doc_format&limit=100${cursor ? `&cursor=${cursor}` : ''}`, 
-      {
-        headers: {
-          'Accept': 'application/json'
-        }
-      }
-    );
-
-    const result = await response.json();
-    allResults = [...allResults, ...result.results];
-
-    if (!result._links?.next) {
-      break;
-    }
-
-    const nextUrl = new URL(result._links.next);
-    cursor = nextUrl.searchParams.get('cursor');
-  }
-
-  return allResults;
 }
