@@ -1,10 +1,10 @@
 import Resolver from '@forge/resolver';
 import api, {route, storage} from "@forge/api";
 import { convert } from "adf-to-md";
-import { toString } from 'nlcst-to-string'
-import { retext } from 'retext'
-import retextKeywords from 'retext-keywords'
-import retextPos from 'retext-pos'
+import { toString } from 'nlcst-to-string';
+import { retext } from 'retext';
+import retextKeywords from 'retext-keywords';
+import retextPos from 'retext-pos';
 
 const resolver = new Resolver();
 
@@ -29,7 +29,6 @@ resolver.define('getKeywordGraphs', async (req) => {
 
   return graphs;
 });
-
 
 resolver.define('getPage', async (req) => {
   const id = 98413
@@ -64,7 +63,6 @@ export const trigger = async ({ context }) => {
 };
 
 async function getKeywordGraphs() {
-
   // This is used to get the base URL of the Confluence instance
   const systemInfo = await api.asUser().requestConfluence(route`/wiki/rest/api/settings/systemInfo`, {
     headers: {
@@ -265,6 +263,72 @@ export const hierarchyTrigger = async ({ context }) => {
   await storage.set('hierarchy', await getHierarchy());
 };
 
+async function getAllRootPagesInSpace(spaceId, depth = 'root') {
+  let allResults = [];
+  let cursor = null;
+
+  while (true) {
+    const result = new Promise((resolve, reject) => {
+      api.asApp().requestConfluence(
+        route`/wiki/api/v2/spaces/${spaceId}/pages?depth=${depth}&limit=100${cursor ? `&cursor=${cursor}` : ''}`,
+        {
+          headers: {
+            'Accept': 'application/json'
+          }
+        })
+        .then(response => resolve(response.json()))
+        .catch(error => {
+          reject(error);
+        });
+    });
+
+    allResults = [...allResults, ...result.results];
+
+    if (!result._links?.next) {
+      break;
+    }
+
+    const nextUrl = new URL(result._links.next);
+    cursor = nextUrl.searchParams.get('cursor');
+  }
+
+  return allResults;
+}
+
+async function getAllChildrenPages(pageId) {
+  let allResults = [];
+  let cursor = null;
+  
+  while (true) {
+    const result = new Promise((resolve, reject) => {
+      api.asApp().requestConfluence(
+        route`/wiki/api/v2/pages/${pageId}/children?limit=100${cursor ? `&cursor=${cursor}` : ''}`,
+        {
+          headers: {
+            'Accept': 'application/json'
+          }
+        }
+      )
+        .then(response =>
+          resolve(response.json()))
+        .catch(error => {
+          reject(error);
+        });
+    });
+
+    allResults = [...allResults, ...result.results];
+
+    if (!result._links?.next) {
+      break;
+    }
+
+    const nextUrl = new URL(result._links.next);
+    cursor = nextUrl.searchParams.get('cursor');
+  }
+
+  return allResults;
+}
+
 async function getHierarchy() {
   const response = await api.asApp().requestConfluence(route`/wiki/api/v2/spaces`, {
     headers: {
@@ -272,62 +336,28 @@ async function getHierarchy() {
     }
   }).then(res => res.json());
 
-  const promises = response.results.map((result) => {
-    return new Promise((resolve, reject) => {
-      api.asApp().requestConfluence(route`/wiki/api/v2/spaces/${result.id}/pages?depth=root&limit=250`, {
-        headers: {
-          'Accept': 'application/json'
-        }
+  const promises = response.results.map(space => { return getAllRootPagesInSpace(space.id, 'root'); });
+  const rootPages = await Promise.all(promises).flat();
 
-      }).then(res => res.json())
-        .then(response => {
-          resolve(response.results)
-        }).catch(error => {
-          reject(error)
-        });
-    })
-  })
+  let parentPages = rootPages.map(page => page.id);
 
-  let parentPages = (await Promise.all(promises)).reduce(function (acc, cur) {
-    return [...acc, ...cur];
-  });
-  parentPages = parentPages.map((page) => {
-    return page.id
-  })
-
-  const links = []
+  const links = [];
   while (parentPages.length > 0) {
-    const promises = parentPages.map((id) => {
-      return new Promise((resolve, reject) => {
-        api.asApp().requestConfluence(route`/wiki/api/v2/pages/${id}/children`, {
-          headers: {
-            'Accept': 'application/json'
-          }
-        }).then(res => res.json())
-          .then(response => {
-            console.log(response)
-            resolve({
-              parent: id,
-              child: response.results
-            })
-          }).catch(error => {
-            reject(error)
-          });
-      })
-    })
+    const promises = parentPages.map((parentId) => {
+      return getAllChildrenPages(parentId);
+    });
 
-    let pages = await Promise.all(promises);
-    parentPages = []
-    pages.forEach(page => {
-      page.child.forEach((child) => {
-        links.push({
-          source: page.parent,
-          target: child.id,
-          type: 'hierarchy',
-        })
-        parentPages.push(child.id)
-      })
-    })
+    let childrenPages = await Promise.all(promises);
+    parentPages = [];
+
+    childrenPages.forEach(child => {
+      links.push({
+        source: parentId,
+        target: child.id,
+        type: 'hierarchy',
+      });
+      parentPages.push(child.id);
+    });
   }
 
   return {
