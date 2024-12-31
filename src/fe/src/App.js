@@ -136,41 +136,39 @@ function App() {
 
   return (
     <div>
-      <div className={`relative`}>
-        <div className='absolute z-10 right-[1rem] top-[1rem]'>
-          <SearchBar
-            searchWord={searchWord}
-            setSearchWord={setSearchWord}
-            handleSearch={handleSearch}
-            handleSearchReset={handleSearchReset}
-          />
-          <div className='flex justify-end p-[1rem]'>
+      <div>
+        <div>
+          <div className='absolute z-10 right-[1rem] top-[1rem]'>
+            <SearchBar
+              searchWord={searchWord}
+              setSearchWord={setSearchWord}
+              handleSearch={handleSearch}
+              handleSearchReset={handleSearchReset}
+            />
+          </div>
+          <div className='absolute z-10 right-[1rem] top-[5rem] space-y-2'>
             <SwitchButton
               is3D={is3D}
               setIs3D={setIs3D}
             />
-          </div>
-          <div className='px-[1rem] flex justify-end'>
-            <div className='space-y-2'>
-              <CheckBox
-                title='keyword'
+            <CheckBox
+              title='keyword'
+              onChecked={handleCheckbox}
+              tooltip='Connect pages by keyword'
+              color={getLinkColor('keyword')}
+            />
+            <CheckBox
+              title='page hierarchy'
+              onChecked={handleCheckbox}
+              tooltip='Connect pages by page hierarchy'
+              color={getLinkColor('hierarchy')}
+            />
+            <CheckBox
+                title='labels'
                 onChecked={handleCheckbox}
-                tooltip='Connect pages by keyword'
-                color={getLinkColor('keyword')}
-              />
-              <CheckBox
-                title='page hierarchy'
-                onChecked={handleCheckbox}
-                tooltip='Connect pages by page hierarchy'
-                color={getLinkColor('hierarchy')}
-              />
-              <CheckBox
-                  title='labels'
-                  onChecked={handleCheckbox}
-                  tooltip='Connect pages by page labels'
-                  color={getLinkColor('labels')}
-              />
-            </div>
+                tooltip='Connect pages by page labels'
+                color={getLinkColor('labels')}
+            />
           </div>
         </div>
           {isSearching && (
