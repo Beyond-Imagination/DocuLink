@@ -9,21 +9,26 @@ modules:
   function:
     - key: resolver
       handler: index.handler
-    - key: my-scheduled-function
-      handler: index.trigger
+    - key: keywordTrigger
+      handler: index.keywordTrigger
     - key: hierarchyTrigger
       handler: index.hierarchyTrigger
     - key: nodesTrigger
       handler: index.nodesTrigger
+    - key: labelsTrigger
+      handler: index.labelsTrigger
   scheduledTrigger:
-    - key: example-scheduled-trigger
-      function: my-scheduled-function
+    - key: keyword-scheduled-trigger
+      function: keywordTrigger
       interval: hour # Runs hourly
     - key: hierarchy-scheduled-trigger
       function: hierarchyTrigger
       interval: hour # Runs hourly
     - key: nodes-scheduled-trigger
       function: nodesTrigger
+      interval: hour # Runs hourly
+    - key: labels-scheduled-trigger
+      function: labelsTrigger
       interval: hour # Runs hourly
 
 resources:
