@@ -56,3 +56,9 @@ resolver.define('getLabels', async (req) => {
 });
 
 export const handler = resolver.getDefinitions();
+
+resolver.define('syncNodes', async (req) => {
+    await storage.set('nodes', await getNodes());
+    let graphs = await storage.get('nodes');
+    return graphs;
+});
