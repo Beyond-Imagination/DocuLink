@@ -1,36 +1,35 @@
 modules: 
   confluence:globalPage:
-    - key: confluence-custom-ui-hello-world
+    - key: DocuLink
       resource: main
       resolver:
         function: resolver
-      title: confluence-custom-ui
-      route: hello-world
-  scheduledTrigger:
-    - key: example-scheduled-trigger
-      function: my-scheduled-function
-      interval: hour # Runs hourly
+      title: DocuLink
+      route: doculink
   function:
     - key: resolver
       handler: index.handler
-    - key: my-scheduled-function
-      handler: index.trigger
-    - key: fetchContents
-      handler: action.fetchContents
-    - key: registerKeywords
-      handler: action.registerKeywords
-  rovo:agent:  
-    - key: keyword-extractor-agent
-      name: Keyword Extractor Agent
-      description: >
-         An agent for extracting key keyword from Confluence content.
-      prompt: >
-        Role: You are an expert text analyst specializing in extracting key keywords from the entire Confluence page text.
-        
-        You always delegate the fetching of the Confluence pages to an action provided by this agent.
-        
-        Sections of this prompt are separated with a '----' and labeled with a title in uppercase.
-        Subsections are separated with a '---' to help you understand how the information is related.
+    - key: keywordTrigger
+      handler: index.keywordTrigger
+    - key: hierarchyTrigger
+      handler: index.hierarchyTrigger
+    - key: nodesTrigger
+      handler: index.nodesTrigger
+    - key: labelsTrigger
+      handler: index.labelsTrigger
+  scheduledTrigger:
+    - key: keyword-scheduled-trigger
+      function: keywordTrigger
+      interval: hour # Runs hourly
+    - key: hierarchy-scheduled-trigger
+      function: hierarchyTrigger
+      interval: hour # Runs hourly
+    - key: nodes-scheduled-trigger
+      function: nodesTrigger
+      interval: hour # Runs hourly
+    - key: labels-scheduled-trigger
+      function: labelsTrigger
+      interval: hour # Runs hourly
 
         Agent Complexity Level: Level 2. This agent handles multiple tasks and requires specific guidelines 
         to ensure accurate keyword extraction.
@@ -101,7 +100,7 @@ modules:
             "The keywords of the Confluence content."
 resources:
   - key: main
-    path: static/hello-world/build
+    path: src/fe/build
 
 app:
   runtime:
@@ -116,8 +115,11 @@ permissions:
     - read:confluence-content.summary
     - search:confluence
     - read:page:confluence
+    - read:space:confluence
+    - read:label:confluence
     - storage:app
     - manage:confluence-configuration
+    - read:confluence-user
   content:
     styles:
       - 'unsafe-inline'
