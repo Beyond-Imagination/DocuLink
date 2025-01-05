@@ -7,7 +7,7 @@ import { toString } from "nlcst-to-string";
 
 export async function getKeywordGraphs() {
     // This is used to get the base URL of the Confluence instance
-    const systemInfo = await api.asUser().requestConfluence(route`/wiki/rest/api/settings/systemInfo`, {
+    const systemInfo = await api.asApp().requestConfluence(route`/wiki/rest/api/settings/systemInfo`, {
         headers: {
             'Accept': 'application/json'
         }
@@ -20,8 +20,15 @@ export async function getKeywordGraphs() {
     let cursor = null;
 
     while (true) {
+        let url = null
+        if (cursor) {
+            url = route`/wiki/api/v2/pages?body-format=atlas_doc_format&limit=100&cursor=${cursor}`
+        } else {
+            url = route`/wiki/api/v2/pages?body-format=atlas_doc_format&limit=100`
+        }
+
         const response = await api.asApp().requestConfluence(
-            route`/wiki/api/v2/pages?body-format=atlas_doc_format&limit=100${cursor ? `&cursor=${cursor}` : ''}`,
+            url,
             {
                 headers: {
                     'Accept': 'application/json'
@@ -83,12 +90,15 @@ export async function getKeywordGraphs() {
             }
         }
 
+        // 다음 페이지 존재 확인
         if (!result._links?.next) {
-            break;
+            break
         }
 
-        const nextUrl = new URL(result._links.next);
-        cursor = nextUrl.searchParams.get('cursor');
+        // 다음 페이지 cursor
+        const searchParams = new URLSearchParams(result._links?.next.split('?')[1]);
+        cursor = searchParams.get('cursor'); // page cursor
+        console.log('after iteration', cursor)
     }
 
     return {
@@ -99,7 +109,7 @@ export async function getKeywordGraphs() {
 }
 
 export async function getNodes() {
-    const systemInfo = await api.asUser().requestConfluence(route`/wiki/rest/api/settings/systemInfo`, {
+    const systemInfo = await api.asApp().requestConfluence(route`/wiki/rest/api/settings/systemInfo`, {
         headers: {
             'Accept': 'application/json'
         }
@@ -111,8 +121,15 @@ export async function getNodes() {
     let cursor = null;
 
     while (true) {
+        let url = null
+        if (cursor) {
+            url = route`/wiki/api/v2/pages?body-format=atlas_doc_format&limit=100&cursor=${cursor}`
+        } else {
+            url = route`/wiki/api/v2/pages?body-format=atlas_doc_format&limit=100`
+        }
+
         const response = await api.asApp().requestConfluence(
-            route`/wiki/api/v2/pages?body-format=atlas_doc_format&limit=100${cursor ? `&cursor=${cursor}` : ''}`,
+            url,
             {
                 headers: {
                     'Accept': 'application/json'
@@ -143,12 +160,14 @@ export async function getNodes() {
             }
         }
 
+        // 다음 페이지 존재 확인
         if (!result._links?.next) {
-            break;
+            break
         }
 
-        const nextUrl = new URL(result._links.next);
-        cursor = nextUrl.searchParams.get('cursor');
+        // 다음 페이지 cursor
+        const searchParams = new URLSearchParams(result._links?.next.split('?')[1]);
+        cursor = searchParams.get('cursor'); // page cursor
     }
 
     return {
@@ -176,7 +195,7 @@ export async function searchByAPI(searchWord) {
 }
 
 export async function getUserInfo(accountId) {
-    const response = await api.asUser().requestConfluence(route`/wiki/rest/api/user?accountId=${accountId}`, {
+    const response = await api.asApp().requestConfluence(route`/wiki/rest/api/user?accountId=${accountId}`, {
         headers: {
             'Accept': 'application/json'
         }
@@ -190,28 +209,31 @@ export async function getAllRootPagesInSpace(spaceId, depth = 'root') {
     let cursor = null;
 
     while (true) {
-        const result = new Promise((resolve, reject) => {
-            api.asApp().requestConfluence(
-                route`/wiki/api/v2/spaces/${spaceId}/pages?depth=${depth}&limit=100${cursor ? `&cursor=${cursor}` : ''}`,
-                {
-                    headers: {
-                        'Accept': 'application/json'
-                    }
-                })
-                .then(response => resolve(response.json()))
-                .catch(error => {
-                    reject(error);
-                });
-        });
+        let url = null
+        if (cursor) {
+            url = route`/wiki/api/v2/spaces/${spaceId}/pages?depth=${depth}&limit=100&cursor=${cursor}`
+        } else {
+            url = route`/wiki/api/v2/spaces/${spaceId}/pages?depth=${depth}&limit=100`
+        }
+
+        const result = await api.asApp().requestConfluence(
+            url,
+            {
+                headers: {
+                    'Accept': 'application/json'
+                }
+            }).then(response => response.json())
 
         allResults = [...allResults, ...result.results];
 
+        // 다음 페이지 존재 확인
         if (!result._links?.next) {
-            break;
+            break
         }
 
-        const nextUrl = new URL(result._links.next);
-        cursor = nextUrl.searchParams.get('cursor');
+        // 다음 페이지 cursor
+        const searchParams = new URLSearchParams(result._links?.next.split('?')[1]);
+        cursor = searchParams.get('cursor'); // page cursor
     }
 
     return allResults;
@@ -222,30 +244,34 @@ export async function getAllChildrenPages(pageId) {
     let cursor = null;
 
     while (true) {
-        const result = new Promise((resolve, reject) => {
-            api.asApp().requestConfluence(
-                route`/wiki/api/v2/pages/${pageId}/children?limit=100${cursor ? `&cursor=${cursor}` : ''}`,
-                {
-                    headers: {
-                        'Accept': 'application/json'
-                    }
-                }
-            )
-                .then(response =>
-                    resolve(response.json()))
-                .catch(error => {
-                    reject(error);
-                });
-        });
-
-        allResults = [...allResults, ...result.results];
-
-        if (!result._links?.next) {
-            break;
+        let url = null
+        if (cursor) {
+            url = route`/wiki/api/v2/pages/${pageId}/children?limit=100&cursor=${cursor}`
+        } else {
+            url = route`/wiki/api/v2/pages/${pageId}/children?limit=100`
         }
 
-        const nextUrl = new URL(result._links.next);
-        cursor = nextUrl.searchParams.get('cursor');
+        let result = await api.asApp().requestConfluence(
+            url,
+            {
+                headers: {
+                    'Accept': 'application/json'
+                }
+            }
+        ).then(response => response.json())
+
+        result = result.results.map(page => ({parentId: pageId, ...page}))
+
+        allResults = [...allResults, ...result];
+
+        // 다음 페이지 존재 확인
+        if (!result._links?.next) {
+            break
+        }
+
+        // 다음 페이지 cursor
+        const searchParams = new URLSearchParams(result._links?.next.split('?')[1]);
+        cursor = searchParams.get('cursor'); // page cursor
     }
 
     return allResults;
@@ -258,10 +284,11 @@ export async function getHierarchy() {
         }
     }).then(res => res.json());
 
-    const promises = response.results.map(space => { return getAllRootPagesInSpace(space.id, 'root'); });
-    const rootPages = await Promise.all(promises).flat();
-
-    let parentPages = rootPages.map(page => page.id);
+    const promises = response.results.map(space => {
+        return getAllRootPagesInSpace(space.id, 'root');
+    });
+    const rootPages = await Promise.all(promises);
+    let parentPages = rootPages.flat().map(page => page.id);
 
     const links = [];
     while (parentPages.length > 0) {
@@ -273,12 +300,14 @@ export async function getHierarchy() {
         parentPages = [];
 
         childrenPages.forEach(child => {
-            links.push({
-                source: parentId,
-                target: child.id,
-                type: 'hierarchy',
-            });
-            parentPages.push(child.id);
+            child.forEach(childPage => {
+                links.push({
+                    source: childPage.parentId,
+                    target: childPage.id,
+                    type: 'hierarchy',
+                });
+                parentPages.push(childPage.id);
+            })
         });
     }
 
@@ -290,15 +319,15 @@ export async function getHierarchy() {
 export async function getLabels() {
     let links = []
     let cursor = null;
-    while(true) {
-        let r = null
+    while (true) {
+        let url = null
         if (cursor) {
-            r = route`/wiki/api/v2/labels?limit=100&cursor=${cursor}`
+            url = route`/wiki/api/v2/labels?limit=100&cursor=${cursor}`
         } else {
-            r = route`/wiki/api/v2/labels?limit=100`
+            url = route`/wiki/api/v2/labels?limit=100`
         }
 
-        const response = await api.asApp().requestConfluence(r, {
+        const response = await api.asApp().requestConfluence(url, {
             headers: {
                 'Accept': 'application/json'
             }
@@ -306,14 +335,14 @@ export async function getLabels() {
 
         const result = await response.json()
 
-        if(result.results?.length === 0) {
+        if (result.results?.length === 0) {
             break
         }
 
         let promises = result.results.map((label) => {
             return new Promise((resolve, reject) => {
                 const labelId = label.id
-                const response = api.asUser().requestConfluence(route`/wiki/api/v2/labels/${labelId}/pages`, {
+                api.asApp().requestConfluence(route`/wiki/api/v2/labels/${labelId}/pages`, {
                     headers: {
                         'Accept': 'application/json'
                     }
@@ -325,8 +354,8 @@ export async function getLabels() {
                         }
 
                         let pageLinks = []
-                        for(let i=0; i<response.results.length; i++){
-                            for(let j=i+1; j<response.results.length; j++) {
+                        for (let i = 0; i < response.results.length; i++) {
+                            for (let j = i + 1; j < response.results.length; j++) {
                                 pageLinks.push({
                                     source: response.results[i].id,
                                     target: response.results[j].id,
@@ -346,7 +375,7 @@ export async function getLabels() {
         })
 
         // 다음 페이지 존재 확인
-        if(!result._links?.next) {
+        if (!result._links?.next) {
             break
         }
 
