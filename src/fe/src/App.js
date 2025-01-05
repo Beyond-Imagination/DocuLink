@@ -139,8 +139,11 @@ function App() {
   const handleSync = async () => {
     setIsSearching(true);
     try {
-      const result = await invoke('syncNodes');
-      setNodes(result)
+      const result = await invoke('sync');
+      setNodes(result.nodes)
+      setKeyword(result.keyword)
+      setHierarchy(result.hierarchy)
+      setLabels(result.labels)
     } finally {
       setIsSearching(false);
     }
