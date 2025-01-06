@@ -1,6 +1,5 @@
 import Resolver from "@forge/resolver";
-import api, { route, storage } from "@forge/api";
-import { convert } from "adf-to-md";
+import { storage } from "@forge/api";
 import { getNodes, getKeywordGraphs, searchByAPI, getHierarchy, getLabels } from "./api"
 
 const resolver = new Resolver();
@@ -55,4 +54,17 @@ resolver.define('getLabels', async (req) => {
     return labels;
 });
 
+resolver.define('sync', async (req) => {
+    const [nodes, keyword, hierarchy, labels] = await Promise.all([getNodes(), getKeywordGraphs(), getHierarchy(), getLabels()]);
+    await Promise.all([storage.set('nodes', nodes), storage.set('keyword', keyword), storage.set('hierarchy', hierarchy), storage.set('labels', labels)])
+
+    return {
+        nodes,
+        keyword,
+        hierarchy,
+        labels,
+    }
+});
+
 export const handler = resolver.getDefinitions();
+

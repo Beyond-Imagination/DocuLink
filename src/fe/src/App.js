@@ -9,6 +9,8 @@ import SwitchButton from "./components/SwitchButton";
 import CheckBox from "./components/Checkbox";
 import { getLinkColor } from './utils/utils';
 import PageNodeTooltip from './components/PageNodeTooltip';
+import SyncBtn from './components/SyncBtn';
+import SyncDescription from './components/SyncDescription';
 
 function App() {
   const [appWidth, setAppWidth] = useState(window.innerWidth);
@@ -134,6 +136,19 @@ function App() {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
+  const handleSync = async () => {
+    setIsSearching(true);
+    try {
+      const result = await invoke('sync');
+      setNodes(result.nodes)
+      setKeyword(result.keyword)
+      setHierarchy(result.hierarchy)
+      setLabels(result.labels)
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
   return (
     <div>
       <div>
@@ -169,6 +184,9 @@ function App() {
                 tooltip='Connect pages by page labels'
                 color={getLinkColor('labels')}
             />
+          </div>
+          <div className='absolute z-10 right-[1rem] top-[14rem]'>
+            <SyncBtn handleSync={handleSync}/>
           </div>
         </div>
           {isSearching && (
@@ -279,6 +297,7 @@ function App() {
               />
           }
       </div>
+      <SyncDescription />
     </div>
   );
 }
