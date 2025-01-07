@@ -52,8 +52,8 @@ export async function getKeywordGraphs() {
                 const keywords = []
                 if (file.data.keywords) {
                     for (const keyword of file.data.keywords) {
-                        const word = toString(keyword.matches[0].node) // keyword 객체에서 실제 키워드 텍스트를 추출하여 문자열로 변환한 값
-                        const docIds = keywordMap.get(word) // 현재 키워드에 해당하는 문서 ID 목록
+                        const word = toString(keyword.matches[0].node) 
+                        const docIds = keywordMap.get(word)
                         if (docIds) {
                             keywordMap.set(word, [...docIds, d.id])
                             docIds.forEach(id => {
