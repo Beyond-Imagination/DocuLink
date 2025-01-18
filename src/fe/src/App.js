@@ -15,11 +15,12 @@ import SyncDescription from './components/SyncDescription';
 function App() {
   const [appWidth, setAppWidth] = useState(window.innerWidth);
   const [graphData, setGraphData] = useState({ nodes: [], links: [] });
-  const [checkbox, setCheckbox] = useState({keyword: false, hierarchy: false, labels: false});
+  const [checkbox, setCheckbox] = useState({keyword: false, hierarchy: false, labels: false, rovo: false});
   const [nodes, setNodes] = useState({ nodes: [] });
   const [keyword, setKeyword] = useState({ nodes: [], links: [] });
   const [hierarchy, setHierarchy] = useState({ nodes: [], links: [] });
   const [labels, setLabels] = useState([]);
+  const [rovos, setRovos] = useState([]);
   const [is3D, setIs3D] = useState(false)
   const [isSearching, setIsSearching] = useState(false);
   const [searchWord, setSearchWord] = useState('');
@@ -65,6 +66,14 @@ function App() {
     }
   }, []);
 
+  useEffect(async () => {
+    try {
+      const result = await invoke('getRovoKeywords');
+      setRovos(result)
+    } finally {
+    }
+  }, []);
+
   const handleSearch = async () => {
     setIsSearching(true);
     try {
@@ -104,6 +113,8 @@ function App() {
       newCheckbox.hierarchy = checked;
     } else if (key === "labels") {
       newCheckbox.labels = checked;
+    } else if (key === "keyword using Rovo") {
+      newCheckbox.rovo = checked;
     }
 
     setCheckbox(newCheckbox);
@@ -123,6 +134,10 @@ function App() {
     }
     if (checkbox.labels) {
       graph.links.push(...labels);
+    }
+
+    if (checkbox.rovo) {
+      graph.links.push(...rovos);
     }
     setGraphData(graph);
   }, [nodes, checkbox]);
@@ -150,68 +165,74 @@ function App() {
   };
 
   return (
-    <div>
       <div>
         <div>
-          <div className='absolute z-10 right-[1rem] top-[1rem]'>
-            <SearchBar
-              searchWord={searchWord}
-              setSearchWord={setSearchWord}
-              handleSearch={handleSearch}
-              handleSearchReset={handleSearchReset}
-            />
+          <div>
+            <div className='absolute z-10 right-[1rem] top-[1rem]'>
+              <SearchBar
+                  searchWord={searchWord}
+                  setSearchWord={setSearchWord}
+                  handleSearch={handleSearch}
+                  handleSearchReset={handleSearchReset}
+              />
+            </div>
+            <div className='absolute z-10 right-[1rem] top-[5rem] space-y-2'>
+              <SwitchButton
+                  is3D={is3D}
+                  setIs3D={setIs3D}
+              />
+              <CheckBox
+                  title='keyword'
+                  onChecked={handleCheckbox}
+                  tooltip='Connect pages by keyword'
+                  color={getLinkColor('keyword')}
+              />
+              <CheckBox
+                  title='keyword using Rovo'
+                  onChecked={handleCheckbox}
+                  tooltip='Connect pages by keyword'
+                  color={getLinkColor('rovo')}
+              />
+              <CheckBox
+                  title='page hierarchy'
+                  onChecked={handleCheckbox}
+                  tooltip='Connect pages by page hierarchy'
+                  color={getLinkColor('hierarchy')}
+              />
+              <CheckBox
+                  title='labels'
+                  onChecked={handleCheckbox}
+                  tooltip='Connect pages by page labels'
+                  color={getLinkColor('labels')}
+              />
+            </div>
+            <div className='absolute z-10 right-[1rem] top-[16rem]'>
+              <SyncBtn handleSync={handleSync}/>
+            </div>
           </div>
-          <div className='absolute z-10 right-[1rem] top-[5rem] space-y-2'>
-            <SwitchButton
-              is3D={is3D}
-              setIs3D={setIs3D}
-            />
-            <CheckBox
-              title='keyword'
-              onChecked={handleCheckbox}
-              tooltip='Connect pages by keyword'
-              color={getLinkColor('keyword')}
-            />
-            <CheckBox
-              title='page hierarchy'
-              onChecked={handleCheckbox}
-              tooltip='Connect pages by page hierarchy'
-              color={getLinkColor('hierarchy')}
-            />
-            <CheckBox
-                title='labels'
-                onChecked={handleCheckbox}
-                tooltip='Connect pages by page labels'
-                color={getLinkColor('labels')}
-            />
-          </div>
-          <div className='absolute z-10 right-[1rem] top-[14rem]'>
-            <SyncBtn handleSync={handleSync}/>
-          </div>
-        </div>
           {isSearching && (
-            <div className="absolute inset-0 z-20 flex items-center justify-center bg-black bg-opacity-50">
-              <div className="animate-pulse flex flex-col items-center space-y-4">
-                <div className="text-slate-600 text-xl font-medium">DocuLink</div>
-                <div className="flex-1 space-y-6 py-1">
-                  <div className="h-2 bg-slate-600 rounded w-24"></div>
-                  <div className="space-y-2">
-                    <div className="grid grid-cols-3 gap-4">
-                      <div className="h-2 bg-slate-600 rounded col-span-2"></div>
+              <div className="absolute inset-0 z-20 flex items-center justify-center bg-black bg-opacity-50">
+                <div className="animate-pulse flex flex-col items-center space-y-4">
+                  <div className="text-slate-600 text-xl font-medium">DocuLink</div>
+                  <div className="flex-1 space-y-6 py-1">
+                    <div className="h-2 bg-slate-600 rounded w-24"></div>
+                    <div className="space-y-2">
+                      <div className="grid grid-cols-3 gap-4">
+                        <div className="h-2 bg-slate-600 rounded col-span-2"></div>
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
-            </div>
           )}
           {tooltipContent && (
-            <PageNodeTooltip 
-              title={tooltipContent.title}
-              status={tooltipContent.status}
-              createdAt={tooltipContent.createdAt}
-              authorName={tooltipContent.authorName}
-            />
-            )
+              <PageNodeTooltip
+                  title={tooltipContent.title}
+                  status={tooltipContent.status}
+                  createdAt={tooltipContent.createdAt}
+                  authorName={tooltipContent.authorName}
+              />
+          )
           }
           { is3D ?
               <ForceGraph3D
@@ -225,15 +246,15 @@ function App() {
                   // backgroundColor={'black'}
                   controlType={'orbit'}
                   nodeThreeObject={node => {
-                      const sprite = new SpriteText(node.title);
-                      node.searched ? sprite.textHeight = 30 : sprite.textHeight = 10;
-                      node.searched ? sprite.color = '#ffde21' : sprite.color = '#ffffff';
-                      return sprite;
+                    const sprite = new SpriteText(node.title);
+                    node.searched ? sprite.textHeight = 30 : sprite.textHeight = 10;
+                    node.searched ? sprite.color = '#ffde21' : sprite.color = '#ffffff';
+                    return sprite;
                   }}
                   onNodeClick={(node) => {
-                      if (node.url) {
-                          router.open(node.url);
-                      }
+                    if (node.url) {
+                      router.open(node.url);
+                    }
                   }}
                   onNodeHover={(node, prevNode) => {
                     if (node) {
@@ -296,9 +317,9 @@ function App() {
                   }}
               />
           }
+        </div>
+        <SyncDescription />
       </div>
-      <SyncDescription />
-    </div>
   );
 }
 

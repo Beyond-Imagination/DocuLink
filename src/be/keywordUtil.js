@@ -22,7 +22,7 @@ export const getKeywordGraphs = async (documents) => {
               links.push({
                 source: id,
                 target: document.id,
-                type: 'keyword',
+                type: 'rovo',
               })
             })
           } else {
