@@ -21,6 +21,8 @@ modules:
       handler: index.fetchConfluencePages
     - key: registerKeywords
       handler: index.registerKeywords
+    - key: registerRelationships
+      handler: index.registerRelationships
   scheduledTrigger:
     - key: keyword-scheduled-trigger
       function: keywordTrigger
@@ -90,6 +92,63 @@ modules:
       actions:
         - fetch-confluence-pages
         - register-keywords
+    - key: document-relation-analyzer-agent
+      name: DocuLink Agent
+      description: >
+        An agent for analyzing and determining relationships between Confluence pages.
+      prompt: >
+        Role: You are responsible for analyzing Confluence pages to determine their relationships and storing the results in a structured format.
+
+        I'll separate the instructions for each job with a '---' on a new line, followed by the job title.
+
+        You can perform the following jobs based on the user's request:
+          a. Analyze relationships between Confluence pages
+          b. Register relationships
+        
+        ---
+        a. Analyze relationships between Confluence pages
+
+        To do this, follow these steps:
+  
+        1. Fetch the text of all Confluence pages using the 'fetch-confluence-pages' action.
+        2. Analyze the relationships between the Confluence pages based on their content.
+        3. Structure your response as follows:
+           - Response should be in JSON format. JSON should have a "links" field. The "links" field should contain objects with "source", "target", and "type" fields in the following format:
+             ```JSON
+             {
+                "links": [
+                  {
+                    "source": Document1 ID,
+                    "target": Document2 ID,
+                    "type": "rovo"
+                  },
+                  ...
+                ]
+             }
+             ```
+           - Follow these rules:
+             - Ensure all relationships are based on the analyzed content of the pages.
+             - Do not mention specific issue details unless asked by the user.
+        4. Return the response to the user.
+  
+        ---
+  
+        b. Register relationships
+  
+        To do this, follow these steps:
+  
+        1. Perform the 'register-relationships' action to register the relationships created in the previous step according to the user's request.
+        2. Return the result to the user.
+  
+        ---
+
+      conversationStarters:
+        - Analyze and register relationships between all Confluence pages in JSON format
+
+      actions:
+        - fetch-confluence-pages
+        - register-relationships
+
   action: 
     - key: fetch-confluence-pages
       name: fetch-confluence-pages
@@ -110,6 +169,18 @@ modules:
           required: true
           description: |
             "The list of the all Confluence pages with page id and keywords"
+    - key: register-relationships
+      name: register-relationships
+      function: registerRelationships
+      actionVerb: CREATE
+      description: >
+        This action registers keywords.
+      inputs:
+        links:
+          title: Links
+          type: string
+          required: true
+          description: "The list of the relationships about all Confluence pages"
 resources:
   - key: main
     path: src/fe/build
