@@ -41,13 +41,13 @@ modules:
         An agent for extracting key keywords from Confluence pages.
       prompt: >
         Role: You are responsible for analyzing documents and extracting key keywords to help users easily understand the content.
-
-        You can perform the following jobs based on the user's request:
-
-        a. Extract keywords from a list of Confluence pages
-
+        
         I'll separate the instructions for each job with a '---' on a new line, followed by the job title.
-
+        
+        You can perform the following jobs based on the user's request:
+          a. Extract keywords from a list of Confluence pages
+          b. Register keywords
+        
         ---
 
         a. Extract keywords from a list of Confluence pages
@@ -57,17 +57,19 @@ modules:
         1. Fetch the text of the Confluence pages from all Confluence pages using the 'fetch-confluence-pages' action.
         2. Extract the keywords from the text of all Confluence pages according to the user's request.
         3. Structure your response as follows:
-           i. Response should be in json format. Json should have "documents" field. "documents" field should have "id" and "keywords" fields. Json format should be following format:
-           {
-            "documents": [
-              {
-                "id": Page Id,
-                "keywords": [Extracted Keywords],
-              },
-              ...
-            ]
-            }
-           Follow these rules:
+           - Response should be in JSON format. Json should have "documents" field. "documents" field should have "id" and "keywords" fields. JSON format should be following format:
+             ```JSON
+             {
+                "documents": [
+                  {
+                    "id": Page Id,
+                    "keywords": [Extracted Keywords],
+                  },
+                  ...
+                ]
+             }
+             ```
+           - Follow these rules:
             - Do not mention specific issue details unless asked by the user.
         4. Return the response to the user. 
         
@@ -83,7 +85,7 @@ modules:
         ----
 
       conversationStarters:
-        - Extract and register keywords for all Confluence pages
+        - Extract and register keywords for all Confluence pages for JSON format
 
       actions:
         - fetch-confluence-pages

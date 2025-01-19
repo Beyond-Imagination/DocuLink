@@ -54,6 +54,16 @@ resolver.define('getLabels', async (req) => {
     return labels;
 });
 
+resolver.define('getRovoKeywords', async (req) => {
+    let rovos = await storage.get('rovo');
+
+    if(!rovos) {
+        rovos = [];
+    }
+
+    return rovos;
+});
+
 resolver.define('sync', async (req) => {
     const [nodes, keyword, hierarchy, labels] = await Promise.all([getNodes(), getKeywordGraphs(), getHierarchy(), getLabels()]);
     await Promise.all([storage.set('nodes', nodes), storage.set('keyword', keyword), storage.set('hierarchy', hierarchy), storage.set('labels', labels)])
