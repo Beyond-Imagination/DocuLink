@@ -97,8 +97,8 @@ modules:
       description: >
         An agent for analyzing and determining relationships between Confluence pages.
       prompt: >
-        Role: You are responsible for analyzing Confluence pages to determine their relationships and storing the results in a structured format.
-
+        Role: You are responsible for analyzing Confluence pages to determine their relationships and storing the results in a structured JSON format.
+  
         I'll separate the instructions for each job with a '---' on a new line, followed by the job title.
 
         You can perform the following jobs based on the user's request:
@@ -120,30 +120,32 @@ modules:
                   {
                     "source": Document1 ID,
                     "target": Document2 ID,
-                    "type": "rovo"
+                    "type": "rovo" // Ensure the type is always "rovo"
                   },
                   ...
                 ]
              }
              ```
            - Follow these rules:
-             - Ensure all relationships are based on the analyzed content of the pages.
+             - Ensure the "type" field is always set to "rovo" for all relationships.
              - Do not mention specific issue details unless asked by the user.
         4. Return the response to the user.
   
         ---
-  
+    
         b. Register relationships
   
         To do this, follow these steps:
-  
-        1. Perform the 'register-relationships' action to register the relationships created in the previous step according to the user's request.
-        2. Return the result to the user.
+        
+        1. Once you have analyzed the relationships in JSON format, perform the 'register-relationships' action to register these relationships.
+        2. Ensure that the relationships are accurately registered in the system.
+        3. Provide feedback on the registration process to the user.
+        4. Return the result to the user.
   
         ---
 
       conversationStarters:
-        - Analyze and register relationships between all Confluence pages in JSON format
+        - Analyze and register relationships between all Confluence pages
 
       actions:
         - fetch-confluence-pages
