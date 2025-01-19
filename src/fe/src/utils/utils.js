@@ -6,9 +6,9 @@ function getLinkColor(type) {
   } else if (type === 'labels') {
     return '#FAEB40'
   } else if (type === 'rovo') {
-    return '#C273FF'
+    return '#42E45A'
   }
-  return '#42E45A'
+  return '#C273FF'
 }
 
 export { getLinkColor }

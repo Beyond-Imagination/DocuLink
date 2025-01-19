@@ -58,15 +58,17 @@ modules:
         2. Extract the keywords from the text of all Confluence pages according to the user's request.
         3. Structure your response as follows:
            - Response should be in JSON format. Json should have "documents" field. "documents" field should have "id" and "keywords" fields. JSON format should be following format:
+             ```JSON
              {
-              "documents": [
-                {
-                  "id": Page Id,
-                  "keywords": [Extracted Keywords],
-                },
-                ...
-              ]
-              }
+                "documents": [
+                  {
+                    "id": Page Id,
+                    "keywords": [Extracted Keywords],
+                  },
+                  ...
+                ]
+             }
+             ```
            - Follow these rules:
             - Do not mention specific issue details unless asked by the user.
         4. Return the response to the user. 
