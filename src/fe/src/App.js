@@ -115,7 +115,7 @@ function App() {
       newCheckbox.hierarchy = checked;
     } else if (key === "labels") {
       newCheckbox.labels = checked;
-    } else if (key === "keyword using Rovo") {
+    } else if (key === "rovo") {
       newCheckbox.rovo = checked;
     }
 
@@ -194,9 +194,9 @@ function App() {
                   color={getLinkColor('keyword')}
               />
               <CheckBox
-                  title='keyword using Rovo'
+                  title='rovo'
                   onChecked={handleCheckbox}
-                  tooltip='Connect pages by keyword'
+                  tooltip='Connect pages by rovo'
                   color={getLinkColor('rovo')}
               />
               <CheckBox
