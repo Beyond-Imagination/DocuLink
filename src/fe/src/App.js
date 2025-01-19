@@ -11,6 +11,7 @@ import { getLinkColor } from './utils/utils';
 import PageNodeTooltip from './components/PageNodeTooltip';
 import SyncBtn from './components/SyncBtn';
 import SyncDescription from './components/SyncDescription';
+import Modal from "./components/Modal";
 
 function App() {
   const [appWidth, setAppWidth] = useState(window.innerWidth);
@@ -25,6 +26,7 @@ function App() {
   const [isSearching, setIsSearching] = useState(false);
   const [searchWord, setSearchWord] = useState('');
   const [tooltipContent, setTooltipContent] = useState(null);
+  const [showRovoModal, setShowRovoModal] = useState(false);
 
   useEffect(async () => {
     setIsSearching(true);
@@ -137,7 +139,11 @@ function App() {
     }
 
     if (checkbox.rovo) {
-      graph.links.push(...rovos);
+      if (!rovos) {
+        setShowRovoModal(true);
+      } else {
+        graph.links.push(...rovos);
+      }
     }
     setGraphData(graph);
   }, [nodes, checkbox]);
@@ -319,6 +325,11 @@ function App() {
           }
         </div>
         <SyncDescription />
+        <Modal
+            content="It is necessary to extract keywords using Rovo's Keyword Extractor Agent. A refresh will be required once the extraction is complete."
+            showModal={showRovoModal}
+            setShowModal={setShowRovoModal}
+        />
       </div>
   );
 }
