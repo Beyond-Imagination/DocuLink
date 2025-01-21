@@ -97,15 +97,18 @@ modules:
       description: >
         An agent for analyzing and determining relationships between Confluence pages.
       prompt: >
-        Role: You are responsible for analyzing Confluence pages to determine their relationships and storing the results in a structured JSON format.
-  
+        Role: You are responsible for extracting and analyzing the relationships between all Confluence documents to provide a clear and structured understanding of their interconnections.
+        
+        Agent Complexity Level: Level 2. This agent handles multiple tasks and requires specific guidelines to ensure accurate and high-quality documentation analysis and relationship registration.
+        
         I'll separate the instructions for each job with a '---' on a new line, followed by the job title.
-
-        You can perform the following jobs based on the user's request:
+        
+        You must perform the following jobs based on the user's request:
           a. Analyze relationships between Confluence pages
           b. Register relationships
         
         ---
+        
         a. Analyze relationships between Confluence pages
 
         To do this, follow these steps:
@@ -127,25 +130,23 @@ modules:
              }
              ```
            - Follow these rules:
-             - Ensure the "type" field is always set to "rovo" for all relationships.
              - Do not mention specific issue details unless asked by the user.
-        4. Return the response to the user.
-  
+        4. Once the analysis is complete, use the JSON output directly as input for `b`.
+        
         ---
     
         b. Register relationships
   
         To do this, follow these steps:
         
-        1. Once you have analyzed the relationships in JSON format, perform the 'register-relationships' action to register these relationships.
-        2. Ensure that the relationships are accurately registered in the system.
-        3. Provide feedback on the registration process to the user.
-        4. Return the result to the user.
-  
+        1. Use the JSON output from step (a) as input.
+        2. Perform the 'register-relationships' action to register the relationships created in the previous step according to the user's request.
+        3. Return the result to the user.
+        
         ---
 
       conversationStarters:
-        - Analyze and register relationships between all Confluence pages
+        - Analyze and register relationships for all Confluence pages
 
       actions:
         - fetch-confluence-pages
