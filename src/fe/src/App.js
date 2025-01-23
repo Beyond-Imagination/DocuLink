@@ -12,6 +12,7 @@ import PageNodeTooltip from './components/PageNodeTooltip';
 import SyncBtn from './components/SyncBtn';
 import SyncDescription from './components/SyncDescription';
 import Modal from "./components/Modal";
+import DarkmodeBtn from "./components/DarkmodeBtn";
 
 function App() {
   const [appWidth, setAppWidth] = useState(window.innerWidth);
@@ -330,6 +331,7 @@ function App() {
             showModal={showRovoModal}
             setShowModal={setShowRovoModal}
         />
+        <DarkmodeBtn />
       </div>
   );
 }
