@@ -17,9 +17,9 @@ function App() {
   const [appWidth, setAppWidth] = useState(window.innerWidth);
   const [graphData, setGraphData] = useState({ nodes: [], links: [] });
   const [checkbox, setCheckbox] = useState({keyword: false, hierarchy: false, labels: false, rovo: false});
-  const [nodes, setNodes] = useState({ nodes: [] });
-  const [keyword, setKeyword] = useState({ nodes: [], links: [] });
-  const [hierarchy, setHierarchy] = useState({ nodes: [], links: [] });
+  const [nodes, setNodes] = useState([]);
+  const [keyword, setKeyword] = useState([]);
+  const [hierarchy, setHierarchy] = useState([]);
   const [labels, setLabels] = useState([]);
   const [rovos, setRovos] = useState([]);
   const [is3D, setIs3D] = useState(false)
@@ -41,23 +41,12 @@ function App() {
 
   useEffect(async () => {
     const result = await invoke('getKeywordGraphs');
-    result.links = result.links.map(link => {
-      link.type = 'keyword'
-      return link
-    });
     setKeyword(result)
   }, []);
 
   useEffect(async () => {
-    try{
-      const result = await invoke('getHierarchy');
-      result.links = result.links.map(link => {
-        link.type = 'hierarchy'
-        return link
-      });
-      setHierarchy(result)
-    } finally {
-    }
+    const result = await invoke('getHierarchy');
+    setHierarchy(result)
   }, []);
 
   useEffect(async () => {
@@ -85,10 +74,7 @@ function App() {
         node.searched = searchedPageIdList.includes(node.id);
         newNodes.push(node);
       }
-      const result = {
-        nodes : newNodes
-      }
-      setNodes(result);
+      setNodes(newNodes);
     } finally {
       setIsSearching(false);
     }
@@ -100,10 +86,7 @@ function App() {
       node.searched = false;
       newNodes.push(node);
     }
-    const result = {
-      nodes : newNodes
-    }
-    setNodes(result);
+    setNodes(newNodes);
   };
 
   // checkbox example event
@@ -129,10 +112,10 @@ function App() {
     }
 
     if (checkbox.keyword) {
-      graph.links.push(...keyword.links);
+      graph.links.push(...keyword);
     }
     if (checkbox.hierarchy) {
-      graph.links.push(...hierarchy.links);
+      graph.links.push(...hierarchy);
     }
     if (checkbox.labels) {
       graph.links.push(...labels);

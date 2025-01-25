@@ -6,16 +6,6 @@ import retextKeywords from "retext-keywords";
 import { toString } from "nlcst-to-string";
 
 export async function getKeywordGraphs() {
-    // This is used to get the base URL of the Confluence instance
-    const systemInfo = await api.asApp().requestConfluence(route`/wiki/rest/api/settings/systemInfo`, {
-        headers: {
-            'Accept': 'application/json'
-        }
-    });
-    const systemInfoResponse = await systemInfo.json()
-    const baseUrl = systemInfoResponse.baseUrl
-
-    const docs = []
     const links = []
     let cursor = null;
 
@@ -70,21 +60,7 @@ export async function getKeywordGraphs() {
                         keywords.push(word)
                     }
                 }
-                const docUrl = baseUrl + d._links.webui
-                const authorName = await getUserInfo(d.authorId)
-                const createdAt = new Date(d.createdAt).toLocaleDateString()
 
-                docs.push({
-                    id: d.id,
-                    title: d.title,
-                    // body: body,
-                    keywords: keywords,
-                    searched: false,
-                    url: docUrl,
-                    authorName: authorName,
-                    status: d.status,
-                    createdAt: createdAt
-                })
             } catch (e) {
                 console.log(e)
             }
@@ -101,10 +77,7 @@ export async function getKeywordGraphs() {
         console.log('after iteration', cursor)
     }
 
-    return {
-        nodes: docs,
-        links: links,
-    }
+    return links;
 
 }
 
@@ -170,9 +143,7 @@ export async function getNodes() {
         cursor = searchParams.get('cursor'); // page cursor
     }
 
-    return {
-        nodes: docs,
-    }
+    return docs
 }
 
 export async function searchByAPI(searchWord) {
@@ -311,9 +282,7 @@ export async function getHierarchy() {
         });
     }
 
-    return {
-        links: links,
-    }
+    return links
 }
 
 export async function getLabels() {
