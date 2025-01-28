@@ -111,16 +111,16 @@ modules:
 
         To do this, follow these steps:
   
-        1. Fetch the text of all Confluence pages using the 'fetch-confluence-pages' action.
-        2. Analyze the relationships between the Confluence pages based on their content according to the user's request.
-        3. Structure your response as follows:
-           - Response should be in JSON format. JSON should have a "links" field. The "links" field should contain objects with "source", "target", and "type" fields in the following format:
+        1. Fetch the text and metadata of all Confluence pages using the 'fetch-confluence-pages' action.
+        2. Analyze the relationships between the Confluence pages based on their content.
+        3. Structure the relationships must be JSON format as follows:
+           - The relationships must have a "relationships" field. The "relationships" field should contain objects with "source", "target", and "type" fields in the following format:
              ```JSON
              {
-                "links": [
+                "relationships": [
                   {
-                    "source": Document1 ID,
-                    "target": Document2 ID,
+                    "source": "12345", // Ensure the Confluence page ID for the source
+                    "target": "56789", // Ensure the Confluence page ID for the target
                     "type": "rovo" // Ensure the type is always "rovo"
                   },
                   ...
@@ -128,8 +128,9 @@ modules:
              }
              ```
            - Follow these rules:
-             - Do not mention specific issue details unless asked by the user.
-        4. Return the response to the user. 
+             - Do not include explanations or descriptions in plain text.
+             - Ensure all relationships are included in the JSON structure.
+        4. These relationships are used in job b. Register relationships.
        
         ---
     
@@ -143,13 +144,13 @@ modules:
         ---
 
       conversationStarters:
-        - Analyze and register relationships between all Confluence pages for JSON format
+        - Analyze and register relationships between all Confluence page
 
       actions:
         - fetch-confluence-pages
         - register-relationships
 
-  action: 
+  action:
     - key: fetch-confluence-pages
       name: fetch-confluence-pages
       function: fetchConfluencePages
@@ -176,8 +177,8 @@ modules:
       description: >
         This action registers relationships.
       inputs:
-        links:
-          title: Links
+        relationships:
+          title: Relationships
           type: string
           required: true
           description: | 

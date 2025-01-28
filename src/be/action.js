@@ -26,19 +26,19 @@ export const registerRelationships = async (payload) => {
     console.log(`registerRelationships. payload = ${JSON.stringify(payload, null, 2)}`);
 
     try {
-        const links = JSON.parse(payload.links);
+        const relationships = JSON.parse(payload.relationships);
 
-        if (!Array.isArray(links)) {
-            throw new Error("Links should be an array.");
+        if (!Array.isArray(relationships)) {
+            throw new Error("Relationships should be an array.");
         }
 
-        for (const link of links) {
-            if (typeof link.source !== 'string' || typeof link.target !== 'string' || link.type !== 'rovo') {
-                throw new Error(`Invalid link format: ${JSON.stringify(link)}`);
+        for (const relationship of relationships) {
+            if (typeof relationship.source !== 'string' || typeof relationship.target !== 'string' || relationship.type !== 'rovo') {
+                throw new Error(`Invalid link format: ${JSON.stringify(relationship)}`);
             }
         }
 
-        await storage.set('rovo', links);
+        await storage.set('rovo', relationships);
     } catch(error) {
         console.error('Error in registerRelationships:', error);
     }
