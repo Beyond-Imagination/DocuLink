@@ -70,7 +70,7 @@ function App() {
     try {
       const searchedPageIdList = await invoke('searchByAPI', { searchWord });
       let newNodes = []
-      for(const node of nodes.nodes) {
+      for(const node of nodes) {
         node.searched = searchedPageIdList.includes(node.id);
         newNodes.push(node);
       }
@@ -82,7 +82,7 @@ function App() {
 
   const handleSearchReset = async () => {
     let newNodes = []
-    for(const node of nodes.nodes) {
+    for(const node of nodes) {
       node.searched = false;
       newNodes.push(node);
     }
@@ -107,7 +107,7 @@ function App() {
 
   useEffect(() => {
     let graph = {
-      nodes: nodes.nodes,
+      nodes: nodes,
       links: [],
     }
 
