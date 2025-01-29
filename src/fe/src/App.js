@@ -28,6 +28,7 @@ function App() {
   const [searchWord, setSearchWord] = useState('');
   const [tooltipContent, setTooltipContent] = useState(null);
   const [showRovoModal, setShowRovoModal] = useState(false);
+  const [isDarkMode, setDarkMode] = useState(false);
 
   useEffect(async () => {
     setIsSearching(true);
@@ -171,6 +172,8 @@ function App() {
     }
   };
 
+  const nodeColor = isDarkMode ? '#9ca3af' : '#ffffff';
+
   return (
       <div>
         <div>
@@ -255,7 +258,7 @@ function App() {
                   nodeThreeObject={node => {
                     const sprite = new SpriteText(node.title);
                     node.searched ? sprite.textHeight = 30 : sprite.textHeight = 10;
-                    node.searched ? sprite.color = '#ffde21' : sprite.color = '#ffffff';
+                    node.searched ? sprite.color = '#ffde21' : sprite.color = nodeColor;
                     return sprite;
                   }}
                   onNodeClick={(node) => {
@@ -331,7 +334,7 @@ function App() {
             showModal={showRovoModal}
             setShowModal={setShowRovoModal}
         />
-        <DarkmodeBtn />
+        <DarkmodeBtn isDarkMode = { isDarkMode } onChange = { setDarkMode } />
       </div>
   );
 }

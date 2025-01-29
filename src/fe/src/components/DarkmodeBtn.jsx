@@ -1,11 +1,12 @@
 import React, {useState} from "react";
 import { BsMoon, BsSun } from "react-icons/bs"
 
-function DarkmodeBtn() {
+function DarkmodeBtn({ isDarkMode, onChange }) {
   const [dark, setDark] = useState(false);
 
   const darkModeHandler = () => {
     setDark(!dark);
+    onChange(!isDarkMode);
     document.body.classList.toggle("dark");
   }
 
