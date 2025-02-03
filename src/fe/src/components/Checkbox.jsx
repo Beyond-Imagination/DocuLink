@@ -21,7 +21,7 @@ function CheckBox({ title, onChecked, tooltip, color }) {
           onChange={handleChange}
           className='w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded-lg focus:ring-blue-500 focus:ring-2'
         />
-        <label htmlFor="default-checkbox" className={`px-2 text-sm font-medium capitalize ${isChecked ? 'text-yellow-300' : 'text-white'}`}>{title}</label>
+        <label htmlFor="default-checkbox" className={`px-2 text-sm font-medium capitalize ${isChecked ? 'dark:text-yellow-300 text-purple-600' : 'dark:text-white text-gray-600'}`}>{title}</label>
         <div className='w-4 h-4 rounded-full border border-white'
           style={{
             backgroundColor: color

@@ -13,17 +13,17 @@ const SwitchButton = ({is3D, setIs3D}) => {
                 onChange={handleCheckboxChange}
                 className='sr-only'
             />
-            <span className={`label flex items-center text-sm font-medium ${is3D ? 'text-white' : 'text-yellow-300'}`}>
+            <span className={`label flex items-center text-sm font-medium ${is3D ? 'dark:text-white text-gray-600' : 'dark:text-yellow-300 text-purple-600'}`}>
               2D
             </span>
             <span
-                className={`slider mx-4 flex h-8 w-[60px] items-center rounded-full p-1 duration-200 ${is3D ? 'bg-[#212b36]' : 'bg-[#CCCCCE]'}`}
+                className={`slider mx-4 flex h-8 w-[60px] items-center rounded-full p-1 duration-200 ${is3D ? 'dark:bg-[#212b36] bg-[#636a72]' : 'dark:bg-[#CCCCCE] bg-[#91969c]'}`}
             >
                 <span
                     className={`dot h-6 w-6 rounded-full bg-white duration-200 ${is3D ? 'translate-x-[28px]' : ''}`}
                 ></span>
             </span>
-            <span className={`label flex items-center text-sm font-medium ${is3D ? 'text-yellow-300' : 'text-white'}`}>
+            <span className={`label flex items-center text-sm font-medium ${is3D ? 'dark:text-yellow-300 text-purple-600' : 'dark:text-white text-gray-600'}`}>
               3D
             </span>
         </label>

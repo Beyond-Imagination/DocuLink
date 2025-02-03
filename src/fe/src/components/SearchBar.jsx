@@ -34,7 +34,7 @@ function Search({ searchWord, setSearchWord, handleSearch, handleSearchReset }) 
             required />
           <button 
             type="submit" 
-            class="text-white w-[5rem] absolute end-2.5 bottom-2.5 bg-[#0C66E4] hover:bg-blue-700 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded text-sm px-4 py-2 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+            class="text-white w-[5rem] absolute end-2.5 bottom-2.5 bg-[#0C66E4] dark:bg-[#0C66E4]/50 hover:bg-blue-700 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded text-sm px-4 py-2 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
             onClick={handleSearch}
             >Search</button>
         </div>
