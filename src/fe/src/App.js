@@ -155,7 +155,8 @@ function App() {
     }
   };
 
-  const nodeColor = isDarkMode ? '#9ca3af' : '#ffffff';
+  const nodeColor = isDarkMode ? '#ffffff' : '#525252';
+  const backgroundColor = isDarkMode ? 'black' : 'lightgrey';
 
   return (
       <div>
@@ -236,7 +237,7 @@ function App() {
                   linkColor={link=> {
                     return getLinkColor(link.type)
                   }}
-                  // backgroundColor={'black'}
+                  backgroundColor={backgroundColor}
                   controlType={'orbit'}
                   nodeThreeObject={node => {
                     const sprite = new SpriteText(node.title);
@@ -269,7 +270,7 @@ function App() {
                   linkColor={link=> {
                     return getLinkColor(link.type)
                   }}
-                  backgroundColor={'rgba(0,0,16,255)'}
+                  backgroundColor={backgroundColor}
                   nodeCanvasObject={(node, ctx, globalScale) => {
                     const label = node.title;
                     const fontSize = node.searched ? 24/globalScale : 12/globalScale;
@@ -277,7 +278,7 @@ function App() {
                     const textWidth = ctx.measureText(label).width;
                     const bckgDimensions = [textWidth, fontSize].map(n => 2*n); // some padding
 
-                    node.searched ? ctx.fillStyle = 'rgba(255, 222, 33, 0.8)' : ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+                    node.searched ? ctx.fillStyle = 'rgba(255, 222, 33, 0.8)' : ctx.fillStyle = nodeColor;
 
                     ctx.textAlign = 'center';
                     ctx.textBaseline = 'middle';

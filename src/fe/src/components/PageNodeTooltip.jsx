@@ -1,6 +1,6 @@
 const PageNodeTooltip = ({ title, status, createdAt, authorName }) => {
   return (
-    <div className="absolute bottom-5 right-0 bg-black/70 text-yellow-300 p-[1rem] rounded pointer-events-none z-[1000] text-start">
+    <div className="absolute bottom-5 right-0 text-yellow-300 p-[1rem] rounded pointer-events-none z-[1000] text-start">
       <div className="w-[320px] rounded-lg border border-gray-200 bg-white p-4 shadow-sm hover:bg-gray-50">
         <div className="items-start gap-3">
           <div className="flex">
