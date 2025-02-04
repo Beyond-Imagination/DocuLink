@@ -29,7 +29,7 @@ function CheckBox({ title, onChecked, tooltip, color }) {
         ></div>
       </div>
       {tooltip && (
-          <span className="absolute right-full top-1/2 transform -translate-y-1/2 mr-3 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">
+          <span className="absolute right-full top-1/2 transform -translate-y-1/2 mr-3 px-2 py-1 bg-gray-50 text-gray-500 dark:bg-gray-800 dark:text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">
             {tooltip}
           </span>
         )
