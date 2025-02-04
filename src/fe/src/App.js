@@ -28,7 +28,9 @@ function App() {
   const [searchWord, setSearchWord] = useState('');
   const [tooltipContent, setTooltipContent] = useState(null);
   const [showRovoModal, setShowRovoModal] = useState(false);
-  const [isDarkMode, setDarkMode] = useState(false);
+  const [isDarkMode, setDarkMode] = useState(() => {
+    return localStorage.getItem('doculinkDarkmode') === 'true';
+  });
 
   useEffect(async () => {
     setIsSearching(true);
