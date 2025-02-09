@@ -13,6 +13,7 @@ import SyncBtn from './components/SyncBtn';
 import SyncDescription from './components/SyncDescription';
 import Modal from "./components/Modal";
 import DarkmodeBtn from "./components/DarkmodeBtn";
+import SyncConfirmModal from './components/SyncConfirmModal';
 
 function App() {
   const [appWidth, setAppWidth] = useState(window.innerWidth);
@@ -28,6 +29,7 @@ function App() {
   const [searchWord, setSearchWord] = useState('');
   const [tooltipContent, setTooltipContent] = useState(null);
   const [showRovoModal, setShowRovoModal] = useState(false);
+  const [showSyncModal, setShowSyncModal] = useState(false);
   const [isDarkMode, setDarkMode] = useState(() => {
     return localStorage.getItem('doculinkDarkmode') === 'true';
   });
@@ -145,6 +147,11 @@ function App() {
   }, []);
 
   const handleSync = async () => {
+    setShowSyncModal(true);
+  };
+
+  const handleSyncConfirm = async () => {
+    setShowSyncModal(false);
     setIsSearching(true);
     try {
       const result = await invoke('sync');
@@ -152,6 +159,8 @@ function App() {
       setKeyword(result.keyword)
       setHierarchy(result.hierarchy)
       setLabels(result.labels)
+      // Reset the links
+      setGraphData({ nodes: result.nodes, links: [] });
     } finally {
       setIsSearching(false);
     }
@@ -319,6 +328,11 @@ function App() {
             content="It is necessary to extract keywords using Rovo's Keyword Extractor Agent. A refresh will be required once the extraction is complete."
             showModal={showRovoModal}
             setShowModal={setShowRovoModal}
+        />
+        <SyncConfirmModal
+          isOpen={showSyncModal}
+          onClose={() => setShowSyncModal(false)}
+          onConfirm={handleSyncConfirm}
         />
         <DarkmodeBtn isDarkMode = { isDarkMode } onChange = { setDarkMode } />
       </div>
