@@ -159,8 +159,15 @@ function App() {
       setKeyword(result.keyword)
       setHierarchy(result.hierarchy)
       setLabels(result.labels)
-      // Reset the links
+      
+      // Reset the links and checkboxes
       setGraphData({ nodes: result.nodes, links: [] });
+      setCheckbox({
+        keyword: false,
+        hierarchy: false,
+        labels: false,
+        rovo: false
+      });
     } finally {
       setIsSearching(false);
     }
@@ -191,24 +198,28 @@ function App() {
                   onChecked={handleCheckbox}
                   tooltip='Connect pages by keyword'
                   color={getLinkColor('keyword')}
+                  checked={checkbox.keyword}
               />
               <CheckBox
                   title='rovo'
                   onChecked={handleCheckbox}
                   tooltip='Connect pages by rovo'
                   color={getLinkColor('rovo')}
+                  checked={checkbox.rovo}
               />
               <CheckBox
                   title='page hierarchy'
                   onChecked={handleCheckbox}
                   tooltip='Connect pages by page hierarchy'
                   color={getLinkColor('hierarchy')}
+                  checked={checkbox.hierarchy}
               />
               <CheckBox
                   title='labels'
                   onChecked={handleCheckbox}
                   tooltip='Connect pages by page labels'
                   color={getLinkColor('labels')}
+                  checked={checkbox.labels}
               />
             </div>
             <div className='absolute z-10 right-[1rem] top-[16rem]'>
