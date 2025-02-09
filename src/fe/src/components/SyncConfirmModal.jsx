@@ -10,7 +10,8 @@ const SyncConfirmModal = ({ isOpen, onClose, onConfirm }) => {
           Sync nodes?
         </div>
         <p className="text-gray-800 dark:text-white mb-4">
-          If you click "confirm", the current node links will be reset.<br/> Do you want to continue?
+          If you click "confirm", the current nodes synchronization will be started.<br/>
+          And shown links will be reset. <span className="font-semibold italic">Do you want to continue?</span>
         </p>
         <div className="flex justify-end space-x-4">
           <button
