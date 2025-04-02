@@ -3,6 +3,7 @@ import './App.css';
 import { invoke, router } from '@forge/bridge';
 import ForceGraph3D from 'react-force-graph-3d';
 import ForceGraph2D from 'react-force-graph-2d';
+import * as THREE from 'three';
 import SpriteText from 'three-spritetext';
 import SearchBar from './components/SearchBar';
 import SwitchButton from "./components/SwitchButton";
@@ -262,10 +263,12 @@ function App() {
                   backgroundColor={backgroundColor}
                   controlType={'orbit'}
                   nodeThreeObject={node => {
-                    const sprite = new SpriteText(node.title);
-                    node.searched ? sprite.textHeight = 30 : sprite.textHeight = 10;
-                    node.searched ? sprite.color = '#ffde21' : sprite.color = nodeColor;
-                    return sprite;
+                    const radius = node.searched ? 10 : 8;
+                    const color = node.searchded ? '#ffde21' : nodeColor;
+                    const geometry = new THREE.SphereGeometry(radius, 16, 16);
+                    const material = new THREE.MeshBasicMaterial({ color });
+
+                    return new THREE.Mesh(geometry, material);
                   }}
                   onNodeClick={(node) => {
                     if (node.url) {
@@ -295,17 +298,25 @@ function App() {
                   backgroundColor={backgroundColor}
                   nodeCanvasObject={(node, ctx, globalScale) => {
                     const label = node.title;
-                    const fontSize = node.searched ? 24/globalScale : 12/globalScale;
-                    ctx.font = `${fontSize}px Sans-Serif`;
+                    const fontSize = 9 / globalScale;
                     const textWidth = ctx.measureText(label).width;
-                    const bckgDimensions = [textWidth, fontSize].map(n => 2*n); // some padding
+                    const bckgDimensions = [textWidth, fontSize].map(n => 2*n); // some padding'
+                    const radius = node.searched ? 10 : 8;
 
                     node.searched ? ctx.fillStyle = 'rgba(255, 222, 33, 0.8)' : ctx.fillStyle = nodeColor;
 
                     ctx.textAlign = 'center';
                     ctx.textBaseline = 'middle';
                     ctx.fillStyle = node.color;
-                    ctx.fillText(label, node.x, node.y);
+                    ctx.font = `${fontSize * 1.5}px system-ui`;
+
+                    ctx.beginPath();
+                    ctx.arc(node.x, node.y, radius, 0, 2 * Math.PI, false);
+                    ctx.fill();
+
+                    if (fontSize < 5) {
+                      ctx.fillText(label, node.x, node.y + (node.searched ? 15 : 13));
+                    }
 
                     node.__bckgDimensions = bckgDimensions; // to re-use in nodePointerAreaPaint
                   }}
