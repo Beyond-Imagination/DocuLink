@@ -1,11 +1,13 @@
 import api, { route } from "@forge/api";
 import { convert } from "adf-to-md";
-import { retext } from "retext";
-import retextPos from "retext-pos";
-import retextKeywords from "retext-keywords";
-import { toString } from "nlcst-to-string";
+import winkNLP from 'wink-nlp';
+import model from 'wink-eng-lite-web-model';
 
 export async function getKeywordGraphs() {
+    const nlp = winkNLP(model);
+    const its = nlp.its;
+
+    const corpus = [];
     const links = []
     let cursor = null;
 
@@ -34,15 +36,23 @@ export async function getKeywordGraphs() {
                 const doc = convert(JSON.parse(d.body.atlas_doc_format.value))
                 const body = doc.result.replace(/(\r\n|\n|\r)/gm, "")
 
-                const file = await retext()
-                    .use(retextPos) // Make sure to use `retext-pos` before `retext-keywords`.
-                    .use(retextKeywords)
-                    .process(body)
+                const result = nlp.readDoc(body);
+                const tokens = result.tokens().filter(t => t.out(its.type) === 'word' && !t.out(its.stopWordFlag));
+                corpus.push(tokens.out(its.normal));
 
-                const keywords = []
-                if (file.data.keywords) {
-                    for (const keyword of file.data.keywords) {
-                        const word = toString(keyword.matches[0].node) 
+                const freqMap = new Map();
+                tokens.each(token => {
+                    const word = token.out(its.normal);
+                    freqMap.set(word, (freqMap.get(word) || 0) + 1);
+                })
+                const keywords = [...freqMap.entries()]
+                    .sort((a, b) => b[1] - a[1])
+                    .slice(0, 5)
+                    .map(([word]) => word);
+
+                console.log(d.title, keywords);
+                if (keywords) {
+                    for (const word of keywords) {
                         const docIds = keywordMap.get(word)
                         if (docIds) {
                             keywordMap.set(word, [...docIds, d.id])
@@ -56,8 +66,6 @@ export async function getKeywordGraphs() {
                         } else {
                             keywordMap.set(word, [d.id])
                         }
-
-                        keywords.push(word)
                     }
                 }
 
