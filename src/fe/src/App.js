@@ -20,7 +20,7 @@ function App() {
   const [appWidth, setAppWidth] = useState(window.innerWidth);
   const [graphData, setGraphData] = useState({ nodes: [], links: [] });
   const [checkbox, setCheckbox] = useState({keyword: false, hierarchy: false, labels: false, rovo: false});
-  const [linkColor, setLinkColor] = useState({ keyword: getLinkColor('keyword'), hierarchy: getLinkColor('page hierarchy'), labels: getLinkColor('labels'), rovo: getLinkColor('rovo')})
+  const [linkColor, setLinkColor] = useState({ keyword: getLinkColor('keyword'), hierarchy: getLinkColor('hierarchy'), labels: getLinkColor('labels'), rovo: getLinkColor('rovo')})
   const [nodes, setNodes] = useState([]);
   const [keyword, setKeyword] = useState([]);
   const [hierarchy, setHierarchy] = useState([]);
@@ -114,16 +114,8 @@ function App() {
   };
   const handleLinkColor = (key, color) => {
     let newLinkColor = {...linkColor};
-
-    if (key === 'keyword') {
-      newLinkColor.keyword = color;
-    } else if(key === "page hierarchy") {
-      newLinkColor.hierarchy = color;
-    } else if (key === "labels") {
-      newLinkColor.labels = color;
-    } else if (key === "rovo") {
-      newLinkColor.rovo = color;
-    }
+    console.log(key, color);
+    newLinkColor[key] = color;
     setLinkColor(newLinkColor);
   }
 
@@ -211,6 +203,7 @@ function App() {
               />
               <CheckBox
                   title='keyword'
+                  colorKey='keyword'
                   onChecked={handleCheckbox}
                   onColorChange={handleLinkColor}
                   tooltip='Connect pages by keyword'
@@ -219,6 +212,7 @@ function App() {
               />
               <CheckBox
                   title='rovo'
+                  colorKey='rovo'
                   onChecked={handleCheckbox}
                   onColorChange={handleLinkColor}
                   tooltip='Connect pages by rovo'
@@ -227,6 +221,7 @@ function App() {
               />
               <CheckBox
                   title='page hierarchy'
+                  colorKey='hierarchy'
                   onChecked={handleCheckbox}
                   onColorChange={handleLinkColor}
                   tooltip='Connect pages by page hierarchy'
@@ -235,6 +230,7 @@ function App() {
               />
               <CheckBox
                   title='labels'
+                  colorKey='labels'
                   onChecked={handleCheckbox}
                   onColorChange={handleLinkColor}
                   tooltip='Connect pages by page labels'

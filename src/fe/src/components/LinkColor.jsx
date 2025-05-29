@@ -2,16 +2,15 @@ import {useState} from "react";
 import ColorPicker from "./ColorPicker";
 import {getLinkColor} from "../utils/utils";
 
-function LinkColor({ title, onChange, color }) {
+function LinkColor({ colorKey, onChange, color }) {
     const [showPicker, setShowPicker] = useState(false);
 
     const handleDefault = () => {
-        onChange(title, getLinkColor(title))
+        onChange(colorKey, getLinkColor(colorKey))
         setShowPicker(false);
     }
     const handleSave = (newColor) => {
-        console.log(newColor);
-        onChange(title, newColor);
+        onChange(colorKey, newColor);
         setShowPicker(false);
     }
     const handleCancel = () => {
