@@ -20,6 +20,7 @@ function App() {
   const [appWidth, setAppWidth] = useState(window.innerWidth);
   const [graphData, setGraphData] = useState({ nodes: [], links: [] });
   const [checkbox, setCheckbox] = useState({keyword: false, hierarchy: false, labels: false, rovo: false});
+  const [linkColor, setLinkColor] = useState({ keyword: getLinkColor('keyword'), hierarchy: getLinkColor('hierarchy'), labels: getLinkColor('labels'), rovo: getLinkColor('rovo')})
   const [nodes, setNodes] = useState([]);
   const [keyword, setKeyword] = useState([]);
   const [hierarchy, setHierarchy] = useState([]);
@@ -111,6 +112,12 @@ function App() {
 
     setCheckbox(newCheckbox);
   };
+  const handleLinkColor = (key, color) => {
+    let newLinkColor = {...linkColor};
+    console.log(key, color);
+    newLinkColor[key] = color;
+    setLinkColor(newLinkColor);
+  }
 
   useEffect(() => {
     let graph = {
@@ -189,37 +196,45 @@ function App() {
                   handleSearchReset={handleSearchReset}
               />
             </div>
-            <div className='absolute z-10 right-[1rem] top-[5rem] space-y-2'>
+            <div className='absolute z-20 right-[1rem] top-[5rem] space-y-2'>
               <SwitchButton
                   is3D={is3D}
                   setIs3D={setIs3D}
               />
               <CheckBox
                   title='keyword'
+                  colorKey='keyword'
                   onChecked={handleCheckbox}
+                  onColorChange={handleLinkColor}
                   tooltip='Connect pages by keyword'
-                  color={getLinkColor('keyword')}
+                  color={linkColor.keyword}
                   checked={checkbox.keyword}
               />
               <CheckBox
                   title='rovo'
+                  colorKey='rovo'
                   onChecked={handleCheckbox}
+                  onColorChange={handleLinkColor}
                   tooltip='Connect pages by rovo'
-                  color={getLinkColor('rovo')}
+                  color={linkColor.rovo}
                   checked={checkbox.rovo}
               />
               <CheckBox
                   title='page hierarchy'
+                  colorKey='hierarchy'
                   onChecked={handleCheckbox}
+                  onColorChange={handleLinkColor}
                   tooltip='Connect pages by page hierarchy'
-                  color={getLinkColor('hierarchy')}
+                  color={linkColor.hierarchy}
                   checked={checkbox.hierarchy}
               />
               <CheckBox
                   title='labels'
+                  colorKey='labels'
                   onChecked={handleCheckbox}
+                  onColorChange={handleLinkColor}
                   tooltip='Connect pages by page labels'
-                  color={getLinkColor('labels')}
+                  color={linkColor.labels}
                   checked={checkbox.labels}
               />
             </div>
@@ -258,6 +273,15 @@ function App() {
                   height={800}
                   linkOpacity={0.8}
                   linkColor={link=> {
+                    if (link.type === 'keyword') {
+                      return linkColor.keyword
+                    } else if (link.type === 'hierarchy') {
+                      return linkColor.hierarchy
+                    } else if (link.type === 'labels') {
+                      return linkColor.labels
+                    } else if (link.type === 'rovo') {
+                      return linkColor.rovo
+                    }
                     return getLinkColor(link.type)
                   }}
                   backgroundColor={backgroundColor}
@@ -293,6 +317,15 @@ function App() {
                   width={appWidth}
                   height={800}
                   linkColor={link=> {
+                    if (link.type === 'keyword') {
+                      return linkColor.keyword
+                    } else if (link.type === 'hierarchy') {
+                      return linkColor.hierarchy
+                    } else if (link.type === 'labels') {
+                      return linkColor.labels
+                    } else if (link.type === 'rovo') {
+                      return linkColor.rovo
+                    }
                     return getLinkColor(link.type)
                   }}
                   backgroundColor={backgroundColor}
