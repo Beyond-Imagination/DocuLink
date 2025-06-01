@@ -3,7 +3,6 @@ import { convert } from "adf-to-md";
 import { retext } from "retext";
 import retextPos from "retext-pos";
 import retextKeywords from "retext-keywords";
-import { toString } from "nlcst-to-string";
 
 export async function getKeywordGraphs() {
     const links = []
@@ -39,10 +38,11 @@ export async function getKeywordGraphs() {
                     .use(retextKeywords)
                     .process(body)
 
-                const keywords = []
+                file.data.keywords.sort((a, b) => b.score - a.score || b.matches.length - a.matches.length);
+                const keywords = file.data.keywords.slice(0, 5);
                 if (file.data.keywords) {
-                    for (const keyword of file.data.keywords) {
-                        const word = toString(keyword.matches[0].node) 
+                    for (const keyword of keywords) {
+                        const word = keyword.stem
                         const docIds = keywordMap.get(word)
                         if (docIds) {
                             keywordMap.set(word, [...docIds, d.id])
@@ -56,8 +56,6 @@ export async function getKeywordGraphs() {
                         } else {
                             keywordMap.set(word, [d.id])
                         }
-
-                        keywords.push(word)
                     }
                 }
 
