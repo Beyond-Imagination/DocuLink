@@ -33,23 +33,16 @@ function App() {
     setIsSearching(true);
     try {
       const searchedPageIdList = await invoke('searchByAPI', { searchWord });
-      let newNodes = []
-      for (const node of nodes) {
-        node.searched = searchedPageIdList.includes(node.id);
-        newNodes.push(node);
-      }
-      setNodes(newNodes);
+      nodes.forEach(node => node.searched = searchedPageIdList.includes(node.id));
+      setNodes([...nodes]);
     } finally {
       setIsSearching(false);
     }
   };
   const handleSearchReset = () => {
-    let newNodes = []
-    for (const node of nodes) {
-      node.searched = false;
-      newNodes.push(node);
-    }
-    setNodes(newNodes);
+    nodes.forEach(node => node.searched = false);
+    setNodes([...nodes]);
+    setSearchWord('');
   };
   useEffect(() => {
     let graph = {
