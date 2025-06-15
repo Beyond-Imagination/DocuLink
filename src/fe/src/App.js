@@ -33,14 +33,14 @@ function App() {
     setIsSearching(true);
     try {
       const searchedPageIdList = await invoke('searchByAPI', { searchWord });
-      nodes.map(node => node.searched = searchedPageIdList.includes(node.id));
+      nodes.forEach(node => node.searched = searchedPageIdList.includes(node.id));
       setNodes([...nodes]);
     } finally {
       setIsSearching(false);
     }
   };
   const handleSearchReset = () => {
-    nodes.map(node => node.searched = false);
+    nodes.forEach(node => node.searched = false);
     setNodes([...nodes]);
     setSearchWord('');
   };
