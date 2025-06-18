@@ -3,22 +3,22 @@ import './App.css';
 import React, { useEffect, useState } from 'react';
 import { invoke } from '@forge/bridge';
 
-import DarkmodeBtn from "./components/DarkmodeBtn";
-import GraphContainer from "./components/GraphContainer";
-import GraphControls from "./components/GraphControls";
-import LoadingScreen from "./components/LoadingScreen";
-import Modal from "./components/Modal";
-import SearchBar from "./components/SearchBar";
+import DarkmodeBtn from './components/DarkmodeBtn';
+import GraphContainer from './components/GraphContainer';
+import GraphControls from './components/GraphControls';
+import LoadingScreen from './components/LoadingScreen';
+import Modal from './components/Modal';
+import SearchBar from './components/SearchBar';
 import SyncConfirmModal from './components/SyncConfirmModal';
 import SyncDescription from './components/SyncDescription';
-import useGraphData from "./hooks/useGraphData";
+import useGraphData from './hooks/useGraphData';
 import { getLinkColor } from './utils/utils';
 
 function App() {
   const [appWidth, setAppWidth] = useState(window.innerWidth);
-  const [graphData, setGraphData] = useState({ nodes: [], links: [] });
-  const [linkColor, setLinkColor] = useState({ keyword: getLinkColor('keyword'), hierarchy: getLinkColor('hierarchy'), labels: getLinkColor('labels'), rovo: getLinkColor('rovo')});
-  const [checkbox, setCheckbox] = useState({keyword: false, hierarchy: false, labels: false, rovo: false});
+  const [graphData, setGraphData] = useState({nodes: [], links: []});
+  const [linkColor, setLinkColor] = useState({ keyword: getLinkColor('keyword'), hierarchy: getLinkColor('hierarchy'), labels: getLinkColor('labels'), rovo: getLinkColor('rovo') });
+  const [checkbox, setCheckbox] = useState({ keyword: false, hierarchy: false, labels: false, rovo: false });
   const [searchWord, setSearchWord] = useState('');
   const [isSearching, setIsSearching] = useState(false);
   const [showRovoModal, setShowRovoModal] = useState(false);
@@ -32,7 +32,7 @@ function App() {
   const handleSearch = async () => {
     setIsSearching(true);
     try {
-      const searchedPageIdList = await invoke('searchByAPI', { searchWord });
+      const searchedPageIdList = await invoke('searchByAPI', {searchWord});
       nodes.forEach(node => node.searched = searchedPageIdList.includes(node.id));
       setNodes([...nodes]);
     } finally {
@@ -88,9 +88,9 @@ function App() {
       setKeyword(result.keyword);
       setHierarchy(result.hierarchy);
       setLabel(result.labels);
-      
+
       // Reset the links and checkboxes
-      setGraphData({ nodes: result.nodes, links: [] });
+      setGraphData({nodes: result.nodes, links: []});
       setCheckbox({
         keyword: false,
         hierarchy: false,
@@ -103,49 +103,49 @@ function App() {
   };
 
   return (
+    <div>
       <div>
         <div>
-          <div>
-            <div className='absolute z-10 right-[1rem] top-[1rem]'>
-              <SearchBar
-                  searchWord={searchWord}
-                  setSearchWord={setSearchWord}
-                  handleSearch={handleSearch}
-                  handleSearchReset={handleSearchReset}
-              />
-            </div>
-            <GraphControls
-                is3D={is3D}
-                setIs3D={setIs3D}
-                checkbox={checkbox}
-                handleCheckbox={(key, checked) => setCheckbox(prev => ({ ...prev, [key]: checked }))}
-                linkColor={linkColor}
-                handleLinkColor={(key, color) => setLinkColor(prev => ({ ...prev, [key]: color }))}
-                handleSync={() => setShowSyncModal(true)}
+          <div className='absolute z-10 right-[1rem] top-[1rem]'>
+            <SearchBar
+              searchWord={searchWord}
+              setSearchWord={setSearchWord}
+              handleSearch={handleSearch}
+              handleSearchReset={handleSearchReset}
             />
           </div>
-          <LoadingScreen isVisible={isSearching} />
-          <GraphContainer
+          <GraphControls
             is3D={is3D}
-            graphData={graphData}
-            appWidth={appWidth}
-            isDarkMode={isDarkMode}
+            setIs3D={setIs3D}
+            checkbox={checkbox}
+            handleCheckbox={(key, checked) => setCheckbox(prev => ({...prev, [key]: checked}))}
             linkColor={linkColor}
+            handleLinkColor={(key, color) => setLinkColor(prev => ({...prev, [key]: color}))}
+            handleSync={() => setShowSyncModal(true)}
           />
         </div>
-        <SyncDescription />
-        <Modal
-            content="It is necessary to extract keywords using Rovo's Keyword Extractor Agent. A refresh will be required once the extraction is complete."
-            showModal={showRovoModal}
-            setShowModal={setShowRovoModal}
+        <LoadingScreen isVisible={isSearching} />
+        <GraphContainer
+          is3D={is3D}
+          graphData={graphData}
+          appWidth={appWidth}
+          isDarkMode={isDarkMode}
+          linkColor={linkColor}
         />
-        <SyncConfirmModal
-          isOpen={showSyncModal}
-          onClose={() => setShowSyncModal(false)}
-          onConfirm={handleSyncConfirm}
-        />
-        <DarkmodeBtn isDarkMode = { isDarkMode } onChange = { setDarkMode } />
       </div>
+      <SyncDescription />
+      <Modal
+        content="It is necessary to extract keywords using Rovo's Keyword Extractor Agent. A refresh will be required once the extraction is complete."
+        showModal={showRovoModal}
+        setShowModal={setShowRovoModal}
+      />
+      <SyncConfirmModal
+        isOpen={showSyncModal}
+        onClose={() => setShowSyncModal(false)}
+        onConfirm={handleSyncConfirm}
+      />
+      <DarkmodeBtn isDarkMode={isDarkMode} onChange={setDarkMode} />
+    </div>
   );
 }
 
