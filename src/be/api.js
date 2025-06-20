@@ -7,6 +7,7 @@ import retextKeywords from "retext-keywords";
 export async function getKeywordGraphs() {
     const links = []
     let cursor = null;
+    let count = 0
 
     while (true) {
         let url = null
@@ -64,6 +65,9 @@ export async function getKeywordGraphs() {
             }
         }
 
+        count += result.results.length
+        console.log('getKeywordGraphs document count', count)
+
         // 다음 페이지 존재 확인
         if (!result._links?.next) {
             break
@@ -90,6 +94,7 @@ export async function getNodes() {
 
     const docs = []
     let cursor = null;
+    let count = 0
 
     while (true) {
         let url = null
@@ -130,6 +135,9 @@ export async function getNodes() {
                 console.log(e)
             }
         }
+
+        count += result.results.length
+        console.log('getNodes document count', count)
 
         // 다음 페이지 존재 확인
         if (!result._links?.next) {
@@ -176,6 +184,7 @@ export async function getUserInfo(accountId) {
 export async function getAllRootPagesInSpace(spaceId, depth = 'root') {
     let allResults = [];
     let cursor = null;
+    let count = 0
 
     while (true) {
         let url = null
@@ -194,6 +203,9 @@ export async function getAllRootPagesInSpace(spaceId, depth = 'root') {
             }).then(response => response.json())
 
         allResults = [...allResults, ...result.results];
+
+        count += result.results.length
+        console.log('getAllRootPagesInSpace document count', count)
 
         // 다음 페이지 존재 확인
         if (!result._links?.next) {
@@ -233,6 +245,9 @@ export async function getAllChildrenPages(pageId) {
 
         allResults = [...allResults, ...result];
 
+        // TODO: count 0 되는 이슈 존재. 원인 파악 필요
+        console.log('getAllChildrenPages document count', allResults.length)
+
         // 다음 페이지 존재 확인
         if (!result._links?.next) {
             break
@@ -260,6 +275,7 @@ export async function getHierarchy() {
     let parentPages = rootPages.flat().map(page => page.id);
 
     const links = [];
+    let count = 0
     while (parentPages.length > 0) {
         const promises = parentPages.map((parentId) => {
             return getAllChildrenPages(parentId);
@@ -267,6 +283,9 @@ export async function getHierarchy() {
 
         let childrenPages = await Promise.all(promises);
         parentPages = [];
+
+        count += childrenPages.length
+        console.log('getHierarchy document count', count)
 
         childrenPages.forEach(child => {
             child.forEach(childPage => {
@@ -286,6 +305,7 @@ export async function getHierarchy() {
 export async function getLabels() {
     let links = []
     let cursor = null;
+    let count = 0
     while (true) {
         let url = null
         if (cursor) {
@@ -301,6 +321,8 @@ export async function getLabels() {
         });
 
         const result = await response.json()
+        count += result.results?.length || 0
+        console.log('getLabels document count', count)
 
         if (result.results?.length === 0) {
             break
