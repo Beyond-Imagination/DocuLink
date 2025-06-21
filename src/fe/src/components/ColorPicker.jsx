@@ -1,4 +1,4 @@
-import {useEffect, useState} from 'react';
+import { useEffect, useState } from 'react';
 import { CustomPicker } from 'react-color';
 import { Alpha, Hue, Saturation } from 'react-color/lib/components/common';
 import tinycolor from 'tinycolor2';
