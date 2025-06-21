@@ -15,6 +15,11 @@ const CustomHexInput = ({ initHex, initAlpha, onChange }) => {
   const [hex, setHex] = useState(initHex);
   const [alpha, setAlpha] = useState(initAlpha * 100);
 
+  useEffect(() => {
+    setHex(initHex);
+    setAlpha(Math.round(initAlpha * 100));
+  }, [initHex, initAlpha]);
+
   const handleHex = () => {
     const validHex = /^[0-9A-Fa-f]{6}$/.test(hex);
     if (validHex) {
@@ -34,7 +39,7 @@ const CustomHexInput = ({ initHex, initAlpha, onChange }) => {
       color.setAlpha(data * 0.01);
       onChange(color);
     } else {
-      setAlpha(initAlpha * 100);
+      setAlpha(Math.round(initAlpha * 100));
     }
   };
 
@@ -73,7 +78,12 @@ const CustomHexInput = ({ initHex, initAlpha, onChange }) => {
 
 const CustomRGBInput = ({ initRgb, onChange }) => {
   const [rgb, setRgb] = useState(initRgb);
-  const [alpha, setAlpha] = useState(initRgb.a * 100);
+  const [alpha, setAlpha] = useState(Math.round(initRgb.a * 100));
+
+  useEffect(() => {
+    setRgb(initRgb);
+    setAlpha(Math.round(initRgb.a * 100));
+  }, [initRgb.a, initRgb.r, initRgb.g, initRgb.b]);
 
   const handleRgb = () => {
     const clampByte = (v, type) => {
@@ -102,7 +112,7 @@ const CustomRGBInput = ({ initRgb, onChange }) => {
       color.setAlpha(data * 0.01);
       onChange(color);
     } else {
-      setAlpha(initRgb.a * 100);
+      setAlpha(Math.round(initRgb.a * 100));
     }
   };
 
@@ -180,15 +190,6 @@ const CustomRGBInput = ({ initRgb, onChange }) => {
 const ColorPicker = ({ color, onDefault, onCancel, onSave }) => {
   const [tempColor, setTempColor] = useState(tinycolor(color));
   const [mode, setMode] = useState('hex');
-  const [hex, setHex] = useState(tempColor.toHex());
-  const [rgb, setRgb] = useState(tempColor.toRgb());
-  const [alpha, setAlpha] = useState(tempColor.getAlpha());
-
-  useEffect(() => {
-    setHex(tempColor.toHex());
-    setRgb(tempColor.toRgb());
-    setAlpha(tempColor.getAlpha());
-  }, [tempColor]);
 
   const handleSaturationChange = (hsv) => {
     const color = tinycolor(hsv);
@@ -253,9 +254,9 @@ const ColorPicker = ({ color, onDefault, onCancel, onSave }) => {
           <option value="rgb" className="bg-inherit">RGB</option>
         </select>
         {mode === 'hex' ? (
-          <CustomHexInput initHex={hex} initAlpha={alpha} onChange={setTempColor} />
+          <CustomHexInput initHex={tempColor.toHex()} initAlpha={tempColor.getAlpha()} onChange={setTempColor} />
         ) : (
-          <CustomRGBInput initRgb={rgb} onChange={setTempColor} />
+          <CustomRGBInput initRgb={tempColor.toRgb()} onChange={setTempColor} />
         )}
       </div>
       <div className="flex flex-row gap-2.5 w-full px-1">
@@ -273,7 +274,7 @@ const ColorPicker = ({ color, onDefault, onCancel, onSave }) => {
         </button>
         <button
           className="flex-1 text-center text-xs text-white dark:text-[#D1D5DB] bg-[#3B82F6] rounded-[0.25rem] px-4 py-0.5"
-          onClick={() => onSave(tempColor.toHexString())}
+          onClick={() => onSave(tempColor.toHex8String())}
         >
           Save
         </button>
