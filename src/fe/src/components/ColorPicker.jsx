@@ -83,7 +83,7 @@ const CustomRGBInput = ({ initRgb, onChange }) => {
   useEffect(() => {
     setRgb(initRgb);
     setAlpha(Math.round(initRgb.a * 100));
-  }, [initRgb]);
+  }, [initRgb.a, initRgb.r, initRgb.g, initRgb.b]);
 
   const handleRgb = () => {
     const clampByte = (v, type) => {
