@@ -61,8 +61,9 @@ function App() {
     }
 
     if (checkbox.rovo) {
-      if (!rovo) {
+      if (rovo.length === 0) {
         setShowRovoModal(true);
+        setCheckbox(prev => ({ ...prev, rovo: false }));
       } else {
         graph.links.push(...rovo);
       }
