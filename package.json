@@ -8,11 +8,14 @@
     "eslint": "^8.56.0",
     "eslint-plugin-react-hooks": "^4.6.0"
   },
+  "overrides": {
+    "form-data": "^4.0.4"
+  },
   "dependencies": {
     "@forge/api": "^4.1.0",
     "@forge/resolver": "1.6.1",
     "adf-to-md": "^1.2.1",
-    "axios": "^1.7.7",
+    "axios": "^1.8.2",
     "dotenv": "^16.4.7",
     "mongodb": "^6.11.0",
     "punycode": "^2.3.1",
