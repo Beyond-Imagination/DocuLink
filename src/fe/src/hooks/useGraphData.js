@@ -1,48 +1,41 @@
 import { invoke } from '@forge/bridge';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
-const loadData = async (fetchFn, setState, setLoading) => {
-  if (setLoading) setLoading(true);
-  try {
-    const result = await fetchFn();
-    setState(result);
-  } finally {
-    if (setLoading) setLoading(false);
-  }
-};
+import { expandHierarchy, expandMembership } from '../utils/utils';
+
+const EMPTY_GRAPH = { nodes: [], keyword: {}, labels: {} };
 
 const useGraphData = (setIsSearching) => {
-  const [nodes, setNodes] = useState([]);
-  const [keyword, setKeyword] = useState([]);
-  const [hierarchy, setHierarchy] = useState([]);
-  const [label, setLabel] = useState([]);
+  const [graph, setGraph] = useState(EMPTY_GRAPH);
   const [rovo, setRovo] = useState([]);
 
-  // fetching node
   useEffect(() => {
-    loadData(() => invoke('getNodes'), setNodes, setIsSearching);
+    let cancelled = false;
+
+    const load = async () => {
+      if (setIsSearching) setIsSearching(true);
+      try {
+        const [nextGraph, nextRovo] = await Promise.all([invoke('getGraph'), invoke('getRovoKeywords')]);
+        if (!cancelled) {
+          setGraph(nextGraph);
+          setRovo(nextRovo);
+        }
+      } finally {
+        if (!cancelled && setIsSearching) setIsSearching(false);
+      }
+    };
+
+    load();
+    return () => { cancelled = true; };
   }, []);
 
-  // fetching keyword link
-  useEffect(() => {
-    loadData(() => invoke('getKeywordGraphs'), setKeyword, undefined);
-  }, []);
+  const keyword = useMemo(() => expandMembership(graph.keyword, 'keyword'), [graph.keyword]);
+  const labels = useMemo(() => expandMembership(graph.labels, 'labels'), [graph.labels]);
+  const hierarchy = useMemo(() => expandHierarchy(graph.nodes), [graph.nodes]);
 
-  // fetching hierarchy link
-  useEffect(() => {
-    loadData(() => invoke('getHierarchy'), setHierarchy, undefined);
-  }, []);
+  const setNodes = (nodes) => setGraph((prev) => ({ ...prev, nodes }));
 
-  // fetching label link
-  useEffect(() => {
-    loadData(() => invoke('getLabels'), setLabel, undefined);
-  }, []);
-
-  useEffect(() => {
-    loadData(() => invoke('getRovoKeywords'), setRovo, undefined);
-  }, []);
-
-  return { nodes, setNodes, keyword, setKeyword, hierarchy, setHierarchy, label, setLabel, rovo, setRovo };
+  return { nodes: graph.nodes, setNodes, keyword, hierarchy, labels, rovo, setGraph };
 };
 
 export default useGraphData;

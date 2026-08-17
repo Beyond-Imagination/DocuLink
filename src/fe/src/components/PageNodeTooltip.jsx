@@ -1,3 +1,5 @@
+import { formatDate } from '../utils/utils';
+
 const PageNodeTooltip = ({ title, status, createdAt, authorName }) => {
   return (
     <div className="absolute bottom-5 right-0 text-yellow-300 p-[1rem] rounded pointer-events-none z-[1000] text-start">
@@ -20,7 +22,7 @@ const PageNodeTooltip = ({ title, status, createdAt, authorName }) => {
           </div>
           <div className="flex space-x-2 px-8">
             <div className="mt-1 text-xs text-gray-500">Status: {status}</div>
-            <div className="mt-1 text-xs text-gray-500">Created: {createdAt}</div>
+            <div className="mt-1 text-xs text-gray-500">Created: {formatDate(createdAt)}</div>
           </div>
         </div>
       </div>
