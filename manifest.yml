@@ -9,31 +9,16 @@ modules:
   function:
     - key: resolver
       handler: index.handler
-    - key: keywordTrigger
-      handler: index.keywordTrigger
-    - key: hierarchyTrigger
-      handler: index.hierarchyTrigger
-    - key: nodesTrigger
-      handler: index.nodesTrigger
-    - key: labelsTrigger
-      handler: index.labelsTrigger
+    - key: graphTrigger
+      handler: index.graphTrigger
     - key: fetchConfluencePages
       handler: index.fetchConfluencePages
     - key: registerKeywords
       handler: index.registerKeywords
   scheduledTrigger:
-    - key: keyword-scheduled-trigger
-      function: keywordTrigger
-      interval: hour # Runs hourly
-    - key: hierarchy-scheduled-trigger
-      function: hierarchyTrigger
-      interval: hour # Runs hourly
-    - key: nodes-scheduled-trigger
-      function: nodesTrigger
-      interval: hour # Runs hourly
-    - key: labels-scheduled-trigger
-      function: labelsTrigger
-      interval: hour # Runs hourly
+    - key: graph-scheduled-trigger
+      function: graphTrigger
+      interval: day # Runs daily
   rovo:agent:  
     - key: keyword-extractor-agent
       name: Keyword Extractor Agent
@@ -116,7 +101,7 @@ resources:
 
 app:
   runtime:
-    name: nodejs20.x
+    name: nodejs24.x
   id: ari:cloud:ecosystem::app/4b9676c8-ccca-4066-9faa-8192bbf3f900
 
 permissions:
