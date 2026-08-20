@@ -1,1 +1,1 @@
-export { handler, keywordTrigger, hierarchyTrigger, nodesTrigger, labelsTrigger, fetchConfluencePages, registerKeywords } from './be';
+export { handler, graphTrigger, fetchConfluencePages, registerKeywords } from './be';

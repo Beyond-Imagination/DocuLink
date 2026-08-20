@@ -27,7 +27,7 @@ function App() {
   const [isDarkMode, setDarkMode] = useState(() => {
     return localStorage.getItem('doculinkDarkmode') === 'true';
   });
-  const { nodes, setNodes, keyword, setKeyword, hierarchy, setHierarchy, label, setLabel, rovo, setRovo } = useGraphData();
+  const { nodes, setNodes, keyword, hierarchy, labels, rovo, setGraph } = useGraphData(setIsSearching);
 
   const handleSearch = async () => {
     setIsSearching(true);
@@ -57,7 +57,7 @@ function App() {
       graph.links.push(...hierarchy);
     }
     if (checkbox.labels) {
-      graph.links.push(...label);
+      graph.links.push(...labels);
     }
 
     if (checkbox.rovo) {
@@ -69,7 +69,7 @@ function App() {
       }
     }
     setGraphData(graph);
-  }, [nodes, checkbox]);
+  }, [nodes, checkbox, keyword, hierarchy, labels, rovo]);
 
   useEffect(() => {
     const handleResize = () => {
@@ -85,10 +85,7 @@ function App() {
     setIsSearching(true);
     try {
       const result = await invoke('sync');
-      setNodes(result.nodes);
-      setKeyword(result.keyword);
-      setHierarchy(result.hierarchy);
-      setLabel(result.labels);
+      setGraph(result);
 
       // Reset the links and checkboxes
       setGraphData({nodes: result.nodes, links: []});
